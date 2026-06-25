@@ -21,6 +21,7 @@ model Image {
     likes Int
     forProfile Boolean
     forId Int
+    date DateTime @default(now())
 }
 
 model Comment {
