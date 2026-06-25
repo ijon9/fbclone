@@ -1,0 +1,39 @@
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String
+  password  String 
+  profilePic Int
+}
+
+model Post {
+    id Int @id @default(autoincrement())
+    title String
+    content String
+    date DateTime @default(now())
+    likes Int
+    userid Int
+}
+
+model Image {
+    id Int @id @default(autoincrement())
+    url String
+    likes Int
+    forProfile Boolean
+    forId Int
+}
+
+model Comment {
+    id Int @id @default(autoincrement())
+    date DateTime @default(now())
+    content String
+    authorid Int
+    forImg boolean
+    forId Int
+}
+
+model Friendships {
+    id Int @id @default(autoincrement())
+    userOne Int
+    userTwo Int
+}
