@@ -36,4 +36,13 @@ model Friendships {
     id Int @id @default(autoincrement())
     userOne Int
     userTwo Int
+    status String
 }
+
+SELECT u.id, u.username, u.avatar_url
+FROM users u
+JOIN (
+    SELECT user_id2 AS friend_id FROM friendships WHERE user_id1 = 3 AND status = 'accepted'
+    UNION ALL
+    SELECT user_id1 AS friend_id FROM friendships WHERE user_id2 = 3 AND status = 'accepted'
+) f ON u.id = f.friend_id;
