@@ -8,29 +8,27 @@ model User {
 
 model Post {
     id Int @id @default(autoincrement())
+    date DateTime @default(now())
     title String
     content String
-    date DateTime @default(now())
-    likes Int
     userid Int
 }
 
 model Image {
     id Int @id @default(autoincrement())
-    url String
-    likes Int
-    forProfile Boolean
-    forId Int
     date DateTime @default(now())
+    url String
+    profileId Int
+    postId Int
 }
 
 model Comment {
     id Int @id @default(autoincrement())
     date DateTime @default(now())
     content String
-    authorid Int
-    forImg boolean
-    forId Int
+    authorId Int
+    imgId boolean
+    postId Int
 }
 
 model Friendships {
@@ -40,10 +38,20 @@ model Friendships {
     status String
 }
 
-SELECT u.id, u.username, u.avatar_url
-FROM users u
-JOIN (
-    SELECT user_id2 AS friend_id FROM friendships WHERE user_id1 = 3 AND status = 'accepted'
-    UNION ALL
-    SELECT user_id1 AS friend_id FROM friendships WHERE user_id2 = 3 AND status = 'accepted'
-) f ON u.id = f.friend_id;
+model Likes {
+    userId Int
+    postId Int
+    imgId Int
+}
+
+SELECT f1.friend_id AS mutual_friend_id
+FROM friendships f1
+INNER JOIN friendships f2 
+   ON f1.friend_id = f2.friend_id
+WHERE f1.user_id = :user_a_id 
+  AND f2.user_id = :user_b_id;
+
+Pending friend requests page
+
+Bidirectional friendships table so search people,
+easy to get status of friendship
