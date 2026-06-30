@@ -34,7 +34,7 @@ app.post("/upload", async (req, res) => {
   const str = req.body.str;
   try {
     const url = await cloudinary.uploader.upload(str, { resource_type: 'image' });
-    console.log(url);
+    console.log(url.secure_url);
   }
   catch(e) {
     console.log(e);

@@ -85,6 +85,7 @@ function Home() {
       const base64String = reader.result; // This contains your binary text string
       try {
         const response = await axios.post('http://localhost:3000/upload', { str: base64String });
+        setFile(null);
       } catch (error) {
         console.error('Upload error:', error);
       }
