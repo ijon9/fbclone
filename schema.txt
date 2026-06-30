@@ -3,7 +3,7 @@ model User {
   email     String   @unique
   name      String
   password  String 
-  profilePic Int
+  profileImg Int
 }
 
 model Post {
@@ -27,7 +27,7 @@ model Comment {
     date DateTime @default(now())
     content String
     authorId Int
-    imgId boolean
+    imgId Int
     postId Int
 }
 
