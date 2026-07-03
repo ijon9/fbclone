@@ -1,67 +1,35 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import axios, { isCancel, AxiosError } from 'axios';
-// import React, { useState } from 'react';
+import { useNavigate } from 'react-router';
 
-// function FileUploader() {
-//   const [file, setFile] = useState(null);
-//   const [previewUrl, setPreviewUrl] = useState('');
-
-//   // 1. Grab the file from the change event
-//   const handleFileChange = (event) => {
-//     const selectedFile = event.target.files[0]; // Gets the first selected file
-    
-//     if (selectedFile) {
-//       setFile(selectedFile);
-      
-//       // Optional: Generate a local URL to preview the file (e.g., an image)
-//       const url = URL.createObjectURL(selectedFile);
-//       setPreviewUrl(url);
-//     }
-//   };
-
-//   // 2. Prepare and send the file to your API
-//   const handleUpload = async (event) => {
-//     event.preventDefault();
-//     if (!file) return;
-
-//     // Binary file data must be wrapped in FormData
-//     const formData = new FormData();
-//     formData.append('myFile', file); 
-
-//     try {
-//       const response = await fetch('https://your-api-endpoint.com', {
-//         method: 'POST',
-//         body: formData, // Fetch sets the Content-Type automatically for FormData
-//       });
-      
-//       if (response.ok) {
-//         console.log('Upload successful!');
-//       }
-//     } catch (error) {
-//       console.error('Upload error:', error);
-//     }
-//   };
-
-//   return (
-//     <form onSubmit={handleUpload}>
-//       {/* File input element */}
-//       <input type="file" onChange={handleFileChange} />
-      
-//       {/* Meta details */}
-//       {file && <p>Selected File: {file.name}</p>}
-      
-//       {/* Optional image preview */}
-//       {previewUrl && <img src={previewUrl} alt="Preview" width="200" />}
-      
-//       <button type="submit" disabled={!file}>Upload File</button>
-//     </form>
-//   );
-// }
 
 // export default FileUploader;
 
 function Home() {
   const [file, setFile] = useState(null);
+  const [user, setUser] = useState(null);
+  const backendURL = import.meta.env.VITE_BACKEND_URL;
+  const navigate = useNavigate();
+
+
+   useEffect(() => {
+    const grab = async () => {
+        const t = localStorage.getItem('token');
+        const resp = await axios.get(backendURL+'/verifyUser', {headers: {
+          'Authorization': `Bearer ${t}`
+        }});
+        
+        const loginMsg = resp.data.message;
+        if(loginMsg === "Invalid token") {
+            alert("Please log in");
+            navigate('/');
+        }
+        else {
+            setUser(resp.data.user);
+        }
+    };
+    grab();
+  }, []);
 
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0]; // Gets the first selected file
@@ -101,6 +69,9 @@ function Home() {
 
   return (
     <>
+    <h1>FBClone</h1>
+    <input type="text"></input><button>Search User</button><br />
+    <button>Edit Profile</button><br />
      <form onSubmit={handleUpload}>
        {/* File input element */}
        <input type="file" onChange={handleFileChange} />
