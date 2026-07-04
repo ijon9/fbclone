@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { createBrowserRouter, RouterProvider } from "react-router";
 import Home from './Home.jsx';
 import LogIn from './LogIn.jsx';
+import EditProfile from './EditProfile.jsx'
 
 function App() {
-  const [count, setCount] = useState(0)
   const router = createBrowserRouter([
     {
       path: "/",
@@ -13,6 +13,10 @@ function App() {
     {
       path: "/home",
       element: <Home />
+    },
+    {
+      path: "/editProfile",
+      element: <EditProfile />
     }
   ])
   return (

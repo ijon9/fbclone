@@ -30,6 +30,10 @@ cloudinary.config({
   api_secret: process.env.API_SECRET
 });
 
+// Object.keys(user).forEach(key => {
+//   console.log(key);        // Logs: name, age, role
+//   console.log(user[key]);  // Logs: Alice, 25, Admin
+// });
 app.post("/upload", async (req, res) => {
   const str = req.body.str;
   try {

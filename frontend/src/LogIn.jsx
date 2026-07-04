@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import axios, { isCancel, AxiosError } from 'axios';
 import { createBrowserRouter, RouterProvider } from "react-router";
 import { useNavigate } from 'react-router';
@@ -8,6 +8,24 @@ function LogIn() {
   const [count, setCount] = useState(0);
   const navigate = useNavigate();
   const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+  useEffect(() => {
+    const grab = async () => {
+      const t = localStorage.getItem('token');
+      const resp = await axios.get(backendURL+'/verifyUser', {headers: {
+        'Authorization': `Bearer ${t}`
+      }});
+      
+      const loginMsg = resp.data.message;
+      if(loginMsg === "Invalid token") {
+          alert("Please log in");
+      }
+      else {
+          navigate('/home');
+      }
+    };
+    grab();
+  }, []);
 
   async function signUp() {
     const payload = {

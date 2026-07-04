@@ -12,7 +12,7 @@ function Home() {
   const navigate = useNavigate();
 
 
-   useEffect(() => {
+  useEffect(() => {
     const grab = async () => {
         const t = localStorage.getItem('token');
         const resp = await axios.get(backendURL+'/verifyUser', {headers: {
@@ -71,7 +71,7 @@ function Home() {
     <>
     <h1>FBClone</h1>
     <input type="text"></input><button>Search User</button><br />
-    <button>Edit Profile</button><br />
+    <button onClick={() => navigate('/editProfile')}>Edit Profile</button><br />
      <form onSubmit={handleUpload}>
        {/* File input element */}
        <input type="file" onChange={handleFileChange} />
