@@ -14,19 +14,19 @@ function Home() {
 
   useEffect(() => {
     const grab = async () => {
-        const t = localStorage.getItem('token');
-        const resp = await axios.get(backendURL+'/verifyUser', {headers: {
-          'Authorization': `Bearer ${t}`
-        }});
-        
-        const loginMsg = resp.data.message;
-        if(loginMsg === "Invalid token") {
-            alert("Please log in");
-            navigate('/');
-        }
-        else {
-            setUser(resp.data.user);
-        }
+      const t = localStorage.getItem('token');
+      const resp = await axios.get(backendURL+'/verifyUser', {headers: {
+        'Authorization': `Bearer ${t}`
+      }});
+      
+      const loginMsg = resp.data.message;
+      if(loginMsg === "Invalid token") {
+          alert("Please log in");
+          navigate('/');
+      }
+      else {
+          setUser(resp.data.user);
+      }
     };
     grab();
   }, []);
@@ -51,6 +51,7 @@ function Home() {
      
     reader.onload = async () => {
       const base64String = reader.result; // This contains your binary text string
+      // console.log(base64String);
       try {
         const response = await axios.post('http://localhost:3000/upload', { str: base64String });
         setFile(null);

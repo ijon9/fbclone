@@ -18,7 +18,6 @@ function LogIn() {
       
       const loginMsg = resp.data.message;
       if(loginMsg === "Invalid token") {
-          alert("Please log in");
       }
       else {
           navigate('/home');

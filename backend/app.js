@@ -30,6 +30,11 @@ cloudinary.config({
   api_secret: process.env.API_SECRET
 });
 
+app.post("/createPost", (req, res) => {
+  // console.log(req.body);
+  res.send({message: "Success"});
+})
+
 // Object.keys(user).forEach(key => {
 //   console.log(key);        // Logs: name, age, role
 //   console.log(user[key]);  // Logs: Alice, 25, Admin
@@ -55,7 +60,6 @@ app.get("/verifyUser", (req, res) => {
   } catch(e) {
     return res.send({message: "Invalid token"});
   }
-  res.send({message : "Success"});
 })
 
 app.post('/logIn', async (req, res) => {
