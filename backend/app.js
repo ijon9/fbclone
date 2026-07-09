@@ -22,7 +22,7 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -30,8 +30,34 @@ cloudinary.config({
   api_secret: process.env.API_SECRET
 });
 
-app.post("/createPost", (req, res) => {
-  // console.log(req.body);
+app.post("/createPost", async (req, res) => {
+  const payload = req.body;
+  try {
+    const post = await prisma.post.create({
+      data: {
+        title: payload.title,
+        content: payload.content,
+        userid: payload.userId
+      }
+    });
+
+    const uploadPromises = payload.dataUrls.map(img => 
+      cloudinary.uploader.upload(img, { resource_type: 'image' })
+    );
+    const results = await Promise.all(uploadPromises);
+    const imageUrls = results.map(result => result.secure_url);
+    for(let url of imageUrls) {
+      const img = await prisma.image.create({
+        data: {
+          url: url,
+          postId: post.id
+        }
+      })
+    }
+  }
+  catch(e) {
+    return res.send({ message: "Invalid query" });
+  }
   res.send({message: "Success"});
 })
 

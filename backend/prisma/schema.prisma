@@ -32,7 +32,6 @@ model Image {
     id Int @id @default(autoincrement())
     date DateTime @default(now())
     url String    @unique
-    profileId Int
     postId Int
 }
 
@@ -41,7 +40,6 @@ model Comment {
     date DateTime @default(now())
     content String
     authorId Int
-    imgId Int
     postId Int
 }
 
@@ -56,6 +54,5 @@ model Likes {
     id Int @id @default(autoincrement())
     userId Int
     postId Int
-    imgId Int
 }
 

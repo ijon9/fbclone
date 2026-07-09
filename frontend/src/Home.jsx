@@ -30,42 +30,6 @@ function Home() {
     };
     grab();
   }, []);
-
-  const handleFileChange = (event) => {
-    const selectedFile = event.target.files[0]; // Gets the first selected file
-    
-    if (selectedFile) {
-      setFile(selectedFile);
-    }
-  };
-
-  const handleUpload = async (event) => {
-    event.preventDefault();
-    if (!file) return;
-
-    const reader = new FileReader();
-  
-    // Read the binary file data and format it as a Data URL
-    reader.readAsDataURL(file); 
-    
-     
-    reader.onload = async () => {
-      const base64String = reader.result; // This contains your binary text string
-      // console.log(base64String);
-      try {
-        const response = await axios.post('http://localhost:3000/upload', { str: base64String });
-        setFile(null);
-      } catch (error) {
-        console.error('Upload error:', error);
-      }
-    };
-    
-    reader.onerror = (error) => {
-      console.error("Error reading file:", error);
-    };
-
-    
-  };
   
 
   return (
@@ -73,15 +37,6 @@ function Home() {
     <h1>FBClone</h1>
     <input type="text"></input><button>Search User</button><br />
     <button onClick={() => navigate('/editProfile')}>Edit Profile</button><br />
-     <form onSubmit={handleUpload}>
-       {/* File input element */}
-       <input type="file" onChange={handleFileChange} />
-      
-       {/* Meta details */}
-       {file && <p>Selected File: {file.name}</p>}
-      
-       <button type="submit" disabled={!file}>Upload File</button>
-     </form>
     </>
   )
 }

@@ -77,7 +77,8 @@ function EditProfile() {
           content: document.getElementById("content").value,
           userId: resp.data.user.id
         };
-        console.log(payload);
+        const resp2 = await axios.post(backendURL+'/createPost', payload);
+        // console.log(resp2);
       } catch(e) {
         console.log("Error");
       }
@@ -88,7 +89,6 @@ function EditProfile() {
     <>
     <h1> FBClone </h1>
     <button onClick={() => navigate("/home")}>Home</button>
-    <h2>Your Images</h2>
     <h2>Your Posts</h2>
     <div style={divStyle}>  
         <h2 style={headingStyle}>Create new post</h2>
