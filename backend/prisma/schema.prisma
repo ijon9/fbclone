@@ -32,6 +32,7 @@ model Image {
     id Int @id @default(autoincrement())
     date DateTime @default(now())
     url String    @unique
+    publicId String
     postId Int
 }
 

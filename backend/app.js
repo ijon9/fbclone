@@ -46,19 +46,52 @@ app.post("/createPost", async (req, res) => {
     );
     const results = await Promise.all(uploadPromises);
     const imageUrls = results.map(result => result.secure_url);
-    for(let url of imageUrls) {
+    const publicIds = results.map(result => result.public_id);
+    for(let i=0; i<imageUrls.length; i++) {
       const img = await prisma.image.create({
         data: {
-          url: url,
+          publicId: publicIds[i],
+          url: imageUrls[i],
           postId: post.id
         }
       })
     }
+    // const d = await cloudinary.uploader.destroy(publicIds[1], {
+    //   invalidate: true
+    // });
+    return res.send({post, message: "Success"});
   }
   catch(e) {
     return res.send({ message: "Invalid query" });
   }
-  res.send({message: "Success"});
+})
+
+// Order by date
+app.get("/getYourPosts/:id", async (req, res) => {
+  const userId = req.params.id;
+  try {
+    const posts = await prisma.post.findMany({
+      where: {userid: +userId},
+      orderBy: { date: 'desc' }
+    });
+    return res.send({posts, message: "Success"})
+  } catch(e) {
+    console.log(e);
+    return res.send({message: "Invalid query" });
+  }
+})
+
+app.get("/getImgs/:id", async (req, res) => {
+  const postId = req.params.id;
+  try {
+    const imgs = await prisma.image.findMany({
+      where: {postId : +postId}
+    });
+    return res.send({imgs, message: "Success"});
+  } catch(e) {
+    console.log(e);
+    return res.send({message: "Invalid query"});
+  }
 })
 
 // Object.keys(user).forEach(key => {

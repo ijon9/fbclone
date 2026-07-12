@@ -1,19 +1,40 @@
 import { useState, useEffect } from 'react'
 import axios, { isCancel, AxiosError } from 'axios';
-import { createBrowserRouter, RouterProvider } from "react-router";
 import { useNavigate } from 'react-router';
 import { Fragment } from 'react';
+import EditPost from './EditPost.jsx'
 
 
 function EditProfile() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [profileImg, setProfileImg] = useState(null);
-  const [img, setImg] = useState(null);
   const [postImgs, setPostImgs] = useState([]);
   const [postPreviews, setPostPreviews] = useState([])
+  const [yourPosts, setYourPosts] = useState([]);
   const backendURL = import.meta.env.VITE_BACKEND_URL;
 
+  useEffect(() => {
+    const grab = async () => {
+      const t = localStorage.getItem('token');
+      const resp = await axios.get(backendURL+'/verifyUser', {headers: {
+        'Authorization': `Bearer ${t}`
+      }});
+      
+      const loginMsg = resp.data.message;
+      if(loginMsg === "Invalid token") {
+          alert("Please log in");
+          navigate('/');
+      }
+      else {
+          setUser(resp.data.user);
+          const resp2 = await axios.get(backendURL+'/getYourPosts/'+resp.data.user.id);
+          // GET POSTS MOST RECENT FIRST
+          setYourPosts(resp2.data.posts);
+      }
+    };
+    grab();
+  }, []);
   
 
   const divStyle = {
@@ -78,18 +99,26 @@ function EditProfile() {
           userId: resp.data.user.id
         };
         const resp2 = await axios.post(backendURL+'/createPost', payload);
-        // console.log(resp2);
+        // ADD NEW POST TO YOURPOSTS
+        setYourPosts((prev) => [resp2.data.post, ...prev]);
+        document.getElementById('title').value = '';
+        document.getElementById('content').value = '';
+        clearImages();
       } catch(e) {
         console.log("Error");
       }
     }
+  }
+  const editPostStyle = {
+    display: "flex",
+    flexDirection: "column",
+    gap: "20px"
   }
   
   return (
     <>
     <h1> FBClone </h1>
     <button onClick={() => navigate("/home")}>Home</button>
-    <h2>Your Posts</h2>
     <div style={divStyle}>  
         <h2 style={headingStyle}>Create new post</h2>
         <div>
@@ -112,6 +141,13 @@ function EditProfile() {
             </textarea><br />
             <button type="submit" onClick={() => createPost()}>Submit</button>
         </div>
+    </div>
+    <h2>Your Posts</h2>
+
+    <div style={editPostStyle}>
+        {yourPosts.map((post) => {
+          return <EditPost post={post} key={"editPost"+post.id}/>
+        })}
     </div>
     </>
   )
