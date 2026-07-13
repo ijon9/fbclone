@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router';
 // import { Fragment } from 'react';
 
 
-function EditPost({ post }) {
+function EditPost({ post, setPosts }) {
   const navigate = useNavigate();
   const [prevImgs, setPrevImgs] = useState([]);
   const [postImgs, setPostImgs] = useState([]);
@@ -34,52 +34,6 @@ function EditPost({ post }) {
     document.getElementById("postImgs").value = "";
   }
 
-  const createPost = async function() {
-    const t = localStorage.getItem('token');
-    const resp = await axios.get(backendURL+'/verifyUser', {headers: {
-      'Authorization': `Bearer ${t}`
-    }});
-    const loginMsg = resp.data.message;
-    if(loginMsg === "Invalid token") {
-      alert("Please log in");
-      navigate("/");
-    }
-    else {
-      setUser(resp.data.user);
-    }
-
-    if (document.getElementById("title").value === "") alert('Please enter a title');
-    else {
-      const filePromises = postImgs.map((img) => {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = (err) => reject(err);
-          reader.readAsDataURL(img);
-        });
-      });
-      const fileNames = postImgs.map((img) => {
-        return img.name;
-      })
-      try {
-        const dataUrls = await Promise.all(filePromises);
-        const payload = {
-          dataUrls: dataUrls,
-          title: document.getElementById("title").value,
-          content: document.getElementById("content").value,
-          userId: resp.data.user.id
-        };
-        const resp2 = await axios.post(backendURL+'/createPost', payload);
-        // console.log(resp2);
-        document.getElementById('title').value = '';
-        document.getElementById('content').value = '';
-        clearImages();
-      } catch(e) {
-        console.log("Error");
-      }
-    }
-  }
-
   const outerDivStyle = {
     border: "1px solid black",
     display: "flex",
@@ -103,7 +57,7 @@ function EditPost({ post }) {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
-        hour12: false
+        hour12: true
     });
     return longFormatter.format(date);
   }
@@ -115,32 +69,77 @@ function EditPost({ post }) {
     justifyContent: "space-between"
   }
 
+  async function deletePost(pid) {
+    const t = localStorage.getItem('token');
+    const resp = await axios.get(backendURL+'/verifyUser', {headers: {
+      'Authorization': `Bearer ${t}`
+    }});
+    const loginMsg = resp.data.message;
+    if(loginMsg === "Invalid token") {
+      alert("Please log in");
+      navigate("/");
+    }
+    else {
+      const resp2 = await axios.delete(backendURL+"/deletePost/"+post.id);
+      setPosts((prev) => {
+        return prev.filter(p => p.id !== post.id);
+      })
+    }
+  }
+  
+  async function deleteImage(iid) {
+    const t = localStorage.getItem('token');
+    const resp = await axios.get(backendURL+'/verifyUser', {headers: {
+      'Authorization': `Bearer ${t}`
+    }});
+    const loginMsg = resp.data.message;
+    if(loginMsg === "Invalid token") {
+      alert("Please log in");
+      navigate("/");
+    }
+    else {
+      const resp2 = await axios.delete(backendURL+"/deleteImage/"+iid);
+      setPrevImgs((prev) => {
+        return prev.filter(i => i.id !== iid);
+      })
+    }
+  }
+
   return (
     <>
     <div style={outerDivStyle}>
-       {/* <div> */}
-            <div style={innerDivStyle}>
-                <div>
-                    <label for={"title"+post.id}>Title:</label>
-                    <input type="text" id={"title"+post.id} defaultValue={post.title} placeholder={post.title}></input>
+        <div style={innerDivStyle}>
+            <div>
+                <label for={"title"+post.id}>Title:</label>
+                <input type="text" id={"title"+post.id} defaultValue={post.title} placeholder={post.title}></input>
+            </div>
+            
+            {formatDate(post.date)}
+            <button onClick={() => deletePost()}>Delete Post</button>
+        </div>
+        Images: <br />
+        <div style={imgDiv}>
+            {prevImgs.map((img, ind) => {
+                return <div>
+                    <img src={img.url} alt="temp" width="150px"></img>
+                    <button onClick={() => deleteImage(img.id)}>x</button>
                 </div>
-                
-                {formatDate(post.date)}
-                <button>Delete Post</button>
-            </div>
-            Images: <br />
-            <div style={imgDiv}>
-                {prevImgs.map((img, ind) => {
-                    return <div>
-                        <img src={img.url} alt="temp" width="150px"></img>
-                        <button>x</button>
-                    </div>
-                })}
-            </div>
-            <label for={"content"+post.id}>Content:</label>
-            <textarea id={"content"+post.id} rows="5" cols="50" defaultValue={post.content} placeholder={post.content}>
-            </textarea><br />
-       {/* </div> */}
+            })}
+        </div>
+        <h3>Add images</h3>
+        <input id={"postImgs"+post.id} type="file" accept="image/*" onChange={handlePostImgChange} multiple/><br />
+        <div>
+          {postImgs.map((img, ind) => {
+            return <Fragment key={"postImg"+ind}>
+              {postImgs[ind].name}
+              <img style={{width: "200px"}} src={postPreviews[ind]}></img>
+            </Fragment>
+          })}
+          <button onClick={() => clearImages()}>Clear Images</button><br />
+        </div>
+        <label for={"content"+post.id}>Content:</label>
+        <textarea id={"content"+post.id} rows="5" cols="50" defaultValue={post.content} placeholder={post.content}>
+        </textarea><br />
     </div>
     </>
   )

@@ -146,7 +146,7 @@ function EditProfile() {
 
     <div style={editPostStyle}>
         {yourPosts.map((post) => {
-          return <EditPost post={post} key={"editPost"+post.id}/>
+          return <EditPost post={post} setPosts={setYourPosts} key={"editPost"+post.id}/>
         })}
     </div>
     </>

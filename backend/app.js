@@ -30,6 +30,53 @@ cloudinary.config({
   api_secret: process.env.API_SECRET
 });
 
+app.delete("/deletePost/:id", async (req, res) => {
+  const postId = req.params.id;
+  try {
+    const imgs = await prisma.image.findMany({
+      where: {postId : +postId}
+    });
+    for(let img of imgs) {
+      const d = await cloudinary.uploader.destroy(img.publicId, {
+        invalidate: true
+      });
+    }
+    const deleteImgs = await prisma.image.deleteMany({
+      where: {postId: +postId}
+    })
+    const delPost = await prisma.post.delete({
+      where: {
+        id: +postId
+      }
+    })
+    // Delete Comments
+    // Delete Likes
+    return res.end({ message: "Success" });
+  }
+  catch(e) {
+    return res.send({ message: "Invalid query" });
+  }
+})
+
+app.delete("/deleteImage/:id", async (req, res) => {
+  const imgId = req.params.id;
+  try {
+    const imgToDel = await prisma.image.findFirst({
+      where: {id: +imgId}
+    })
+    const d = await cloudinary.uploader.destroy(imgToDel.publicId, {
+      invalidate: true
+    });
+    const del = await prisma.image.delete({
+      where: {id : +imgId}
+    })
+    return res.send({ message: "Success" });
+  }
+  catch(e) {
+    return res.send({ message: "Invalid query" });
+  }
+})
+
 app.post("/createPost", async (req, res) => {
   const payload = req.body;
   try {
