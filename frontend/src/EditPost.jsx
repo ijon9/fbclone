@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import axios, { isCancel, AxiosError } from 'axios';
 import { useNavigate } from 'react-router';
-// import { Fragment } from 'react';
+import { Fragment } from 'react';
 
 
 function EditPost({ post, setPosts }) {
@@ -31,7 +31,7 @@ function EditPost({ post, setPosts }) {
   const clearImages = function() {
     setPostImgs([]);
     setPostPreviews([]);
-    document.getElementById("postImgs").value = "";
+    document.getElementById("postImgs"+post.id).value = "";
   }
 
   const outerDivStyle = {
@@ -41,6 +41,7 @@ function EditPost({ post, setPosts }) {
     alignItems: "center",
     textAlign: "center",
     padding: "20px",
+    borderRadius: "30px"
   }
 
   const imgDiv = {
@@ -105,6 +106,60 @@ function EditPost({ post, setPosts }) {
     }
   }
 
+  async function saveChanges() {
+    const t = localStorage.getItem('token');
+    const resp = await axios.get(backendURL+'/verifyUser', {headers: {
+      'Authorization': `Bearer ${t}`
+    }});
+    const loginMsg = resp.data.message;
+    if(loginMsg === "Invalid token") {
+      alert("Please log in");
+      navigate("/");
+      return;
+    }
+    if (document.getElementById("title"+post.id).value === "") {
+      alert('Please enter a title');
+      return;
+    }
+    const filePromises = postImgs.map((img) => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = (err) => reject(err);
+        reader.readAsDataURL(img);
+      });
+    });
+    const fileNames = postImgs.map((img) => {
+      return img.name;
+    })
+    try {
+      const dataUrls = await Promise.all(filePromises);
+      const payload = {
+        postId: post.id,
+        dataUrls: dataUrls,
+        title: document.getElementById("title"+post.id).value,
+        content: document.getElementById("content"+post.id).value,
+      };
+      const resp2 = await axios.post(backendURL+"/updatePost", payload);
+      setPosts((prev) => {
+        const temp = [...prev];
+        for(let i=0; i<temp.length; i++) {
+          if(temp[i].id === resp2.data.post.id) {
+            temp[i] = resp2.data.post;
+          }
+        }
+        return temp;
+      });
+      const resp3 = await axios.get(backendURL+"/getImgs/"+post.id);
+      if(resp.data.message === "Success") {
+        setPrevImgs(resp3.data.imgs)
+      }
+      clearImages();
+    } catch(e) {
+      console.log(e);
+    }
+  }
+
   return (
     <>
     <div style={outerDivStyle}>
@@ -140,6 +195,7 @@ function EditPost({ post, setPosts }) {
         <label for={"content"+post.id}>Content:</label>
         <textarea id={"content"+post.id} rows="5" cols="50" defaultValue={post.content} placeholder={post.content}>
         </textarea><br />
+        <button onClick={() => saveChanges()}>Save Changes</button>
     </div>
     </>
   )

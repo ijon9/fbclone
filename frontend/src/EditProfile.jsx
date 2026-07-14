@@ -43,7 +43,7 @@ function EditProfile() {
     flexDirection: "column",
     alignItems: "center",
     textAlign: "center",
-    padding: "20px"
+    padding: "20px",
   }
 
   const headingStyle = {

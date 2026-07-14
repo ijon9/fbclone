@@ -77,6 +77,38 @@ app.delete("/deleteImage/:id", async (req, res) => {
   }
 })
 
+app.post("/updatePost", async (req, res) => {
+  const payload = req.body;
+  try {
+    const updatePost = await prisma.post.update({
+      where: {id: payload.postId},
+      data: {
+        title: payload.title,
+        content: payload.content
+      }
+    });
+    const uploadPromises = payload.dataUrls.map(img => 
+      cloudinary.uploader.upload(img, { resource_type: 'image' })
+    );
+    const results = await Promise.all(uploadPromises);
+    const imageUrls = results.map(result => result.secure_url);
+    const publicIds = results.map(result => result.public_id);
+    for(let i=0; i<imageUrls.length; i++) {
+      const img = await prisma.image.create({
+        data: {
+          publicId: publicIds[i],
+          url: imageUrls[i],
+          postId: payload.postId
+        }
+      })
+    }
+    return res.send({post: updatePost, message: "Success"});
+  } catch(e) {
+    console.log(e);
+    return res.send({ message: "Invalid query" });
+  }
+})
+
 app.post("/createPost", async (req, res) => {
   const payload = req.body;
   try {
