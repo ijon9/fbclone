@@ -14,6 +14,9 @@ import { prisma } from "./lib/prisma.js";
 //    Guide, this tells the browser to split the form fields into
 //     separate "parts"
 
+// TODO
+// Make pressing enter work
+
 const app = express();
 
 app.use(cors({
@@ -29,6 +32,42 @@ cloudinary.config({
   api_key: process.env.API_KEY,
   api_secret: process.env.API_SECRET
 });
+
+app.post("/searchUsers", async (req, res) => {
+  const payload = req.body;
+  try {
+    const query = payload.query;
+    const userId = payload.userId;
+    const users = await prisma.user.findMany({
+      where: {
+        AND: [
+          {name: { contains: query, mode: 'insensitive'}}, 
+          {id: {not: userId} }
+        ]
+      }
+    });
+    for(let i=0; i<users.length; i++) {
+      const status = await prisma.friendships.findFirst({
+        select: {
+          status: true
+        },
+        where: {
+          AND: [
+            {userOne: userId},
+            {userTwo: users[i].id}
+          ]
+        }
+      });
+      if(status === null) users[i].status = "unsent";
+      else users[i].status = status.status;
+    }
+    return res.send({message: 'Success', users});
+  } catch(e) {
+    console.log(e);
+    res.send({message: "Invalid query"});
+  }
+  
+})
 
 app.delete("/deletePost/:id", async (req, res) => {
   const postId = req.params.id;
@@ -219,7 +258,6 @@ app.post('/logIn', async (req, res) => {
 
 app.post('/signUp', async (req, res) => {
   const payload = req.body;
-  console.log(payload);
   const hashed = await bcrypt.hash(payload.password, 10);
   try {
     if(payload.password === '' || payload.email === '' || payload.name === '') throw new Error("Empty field");

@@ -31,12 +31,36 @@ function Home() {
     grab();
   }, []);
   
+  function logOut() {
+    localStorage.removeItem('token');
+    navigate('/');
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const t = localStorage.getItem('token');
+    const resp = await axios.get(backendURL+'/verifyUser', {headers: {
+      'Authorization': `Bearer ${t}`
+    }});
+    const loginMsg = resp.data.message;
+    if(loginMsg === "Invalid token") {
+        alert("Please log in");
+        navigate('/');
+        return;
+    }
+    const query = document.getElementById("findUser").value;
+    const resp2 = await axios.post(backendURL+"/searchUsers", {query, userId: user.id});
+  }
 
   return (
     <>
     <h1>FBClone</h1>
-    <input type="text"></input><button>Search User</button><br />
-    <button onClick={() => navigate('/editProfile')}>Edit Profile</button><br />
+    <button onClick={() => navigate('/editProfile')}>Edit Profile</button>
+    <button onClick={() => logOut()}>Log Out</button><br />
+    <form onSubmit={handleSubmit}>
+      <input type="text" id="findUser"></input><button type="submit">Search User</button><br />
+    </form>
+    
     </>
   )
 }

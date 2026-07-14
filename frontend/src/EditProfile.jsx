@@ -114,11 +114,17 @@ function EditProfile() {
     flexDirection: "column",
     gap: "20px"
   }
+
+  function logOut() {
+    localStorage.removeItem('token');
+    navigate('/');
+  }
   
   return (
     <>
     <h1> FBClone </h1>
     <button onClick={() => navigate("/home")}>Home</button>
+    <button onClick={() => logOut()}>Log Out</button>
     <div style={divStyle}>  
         <h2 style={headingStyle}>Create new post</h2>
         <div>
