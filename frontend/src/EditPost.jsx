@@ -175,7 +175,7 @@ function EditPost({ post, setPosts }) {
         Images: <br />
         <div style={imgDiv}>
             {prevImgs.map((img, ind) => {
-                return <div>
+                return <div key={"prevImgs"+img.id}>
                     <img src={img.url} alt="temp" width="150px"></img>
                     <button onClick={() => deleteImage(img.id)}>x</button>
                 </div>

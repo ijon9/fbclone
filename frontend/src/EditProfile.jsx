@@ -3,12 +3,15 @@ import axios, { isCancel, AxiosError } from 'axios';
 import { useNavigate } from 'react-router';
 import { Fragment } from 'react';
 import EditPost from './EditPost.jsx'
-
+import silhouette from './silhouette.jpg'
+import ProfileImg from './ProfileImg.jsx';
 
 function EditProfile() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [profileImg, setProfileImg] = useState(null);
+  const [newProfileImg, setNewProfileImg] = useState(null)
+  const [newProfileImgPreview, setNewProfileImgPreview] = useState(null);
   const [postImgs, setPostImgs] = useState([]);
   const [postPreviews, setPostPreviews] = useState([])
   const [yourPosts, setYourPosts] = useState([]);
@@ -55,6 +58,25 @@ function EditProfile() {
     setPostImgs(files);
     const filePreviews = files.map((file) => URL.createObjectURL(file));
     setPostPreviews(filePreviews);
+  }
+
+  const handleProfileImgChange = (e) => {
+    const file = e.target.files[0];
+    setNewProfileImg(file);
+    const filePreview = URL.createObjectURL(file);
+    setNewProfileImgPreview(filePreview);
+  }
+
+  const createProfileImg = async () => {
+    const filePromise = new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(newProfileImg)
+    });
+    const dataUrl = await filePromise;
+    console.log(dataUrl);
+
   }
 
   const clearImages = function() {
@@ -124,7 +146,14 @@ function EditProfile() {
     <>
     <h1> FBClone </h1>
     <button onClick={() => navigate("/home")}>Home</button>
-    <button onClick={() => logOut()}>Log Out</button>
+    <button onClick={() => logOut()}>Log Out</button><br />
+    {user && <p><strong>Welcome, {user.name}</strong></p>}
+    <ProfileImg src={silhouette}/>
+    <input id="profileImg" type="file" accept="image/*" onChange={handleProfileImgChange} />
+    {newProfileImgPreview && <ProfileImg src={newProfileImgPreview} />}
+    <br />
+    <button onClick={createProfileImg}>Submit Image</button>
+    <button>Delete Image</button><br /><br />
     <div style={divStyle}>  
         <h2 style={headingStyle}>Create new post</h2>
         <div>
@@ -143,7 +172,7 @@ function EditProfile() {
             <button onClick={() => clearImages()}>Clear Images</button><br />
             
             <label for="content">Content:</label><br />
-            <textarea id="content" name="content" rows="5" cols="100">
+            <textarea id="content" name="content" rows="5" cols="50">
             </textarea><br />
             <button type="submit" onClick={() => createPost()}>Submit</button>
         </div>

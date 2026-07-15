@@ -8,14 +8,10 @@ import { prisma } from "./lib/prisma.js";
 
 // npx prisma studio --config ./prisma.config.js
 
-// To correctly transmit an image, your <form> element
-//  must include the enctype="multipart/form-data" attribute.
-//   According to documentation on the MDN Web Docs File Input
-//    Guide, this tells the browser to split the form fields into
-//     separate "parts"
-
 // TODO
 // Make pressing enter work
+// Reload each page
+// Check keys are unique for every page
 
 const app = express();
 

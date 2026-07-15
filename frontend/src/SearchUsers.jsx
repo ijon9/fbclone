@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react'
 import axios, { isCancel, AxiosError } from 'axios';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 
 
 // export default FileUploader;
 
-function Home() {
+function SearchUsers() {
   const [user, setUser] = useState(null);
+  const [users, setUsers] = useState([]);
   const backendURL = import.meta.env.VITE_BACKEND_URL;
   const navigate = useNavigate();
+  const location = useLocation();
 
 
   useEffect(() => {
@@ -25,6 +27,7 @@ function Home() {
       }
       else {
           setUser(resp.data.user);
+          if(location.state?.users !== undefined) setUsers(location.state?.users);
       }
     };
     grab();
@@ -35,34 +38,22 @@ function Home() {
     navigate('/');
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const t = localStorage.getItem('token');
-    const resp = await axios.get(backendURL+'/verifyUser', {headers: {
-      'Authorization': `Bearer ${t}`
-    }});
-    const loginMsg = resp.data.message;
-    if(loginMsg === "Invalid token") {
-        alert("Please log in");
-        navigate('/');
-        return;
-    }
-    const query = document.getElementById("findUser").value;
-    const resp2 = await axios.post(backendURL+"/searchUsers", {query, userId: user.id});
-    navigate('/searchUsers', {state: {users: resp2.data.users }});
-  }
-
   return (
     <>
     <h1>FBClone</h1>
     <button onClick={() => navigate('/editProfile')}>Edit Profile</button>
+    <button onClick={() => navigate('/home')}>Home</button>
     <button onClick={() => logOut()}>Log Out</button><br />
-    <form onSubmit={handleSubmit}>
-      <input type="text" id="findUser"></input><button type="submit">Search User</button><br />
-    </form>
-    
+    <div>
+        <h2>Users</h2>
+        {users.map((u, ind) => {
+            return <div key={"sUser"+u.id}>
+                {u.name}
+            </div>
+        })}
+    </div>
     </>
   )
 }
 
-export default Home
+export default SearchUsers
