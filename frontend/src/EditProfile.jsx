@@ -34,6 +34,9 @@ function EditProfile() {
           const resp2 = await axios.get(backendURL+'/getYourPosts/'+resp.data.user.id);
           // GET POSTS MOST RECENT FIRST
           setYourPosts(resp2.data.posts);
+          // Grab profile img as well
+          const resp3 = await axios.get(backendURL+'/getProfileImg/'+resp.data.user.id);
+          setProfileImg(resp3.data.profileImg);
       }
     };
     grab();
@@ -68,6 +71,19 @@ function EditProfile() {
   }
 
   const createProfileImg = async () => {
+    const t = localStorage.getItem('token');
+    const resp = await axios.get(backendURL+'/verifyUser', {headers: {
+      'Authorization': `Bearer ${t}`
+    }});
+    const loginMsg = resp.data.message;
+    if(loginMsg === "Invalid token") {
+      alert("Please log in");
+      navigate("/");
+    }
+    if(newProfileImg === null) {
+      alert("Please select an image");
+      return;
+    }
     const filePromise = new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
@@ -75,8 +91,37 @@ function EditProfile() {
       reader.readAsDataURL(newProfileImg)
     });
     const dataUrl = await filePromise;
-    console.log(dataUrl);
+    try {
+      const resp2 = await axios.post(backendURL+"/createProfileImg", {dataUrl, userId: user.id})
+      setProfileImg(resp2.data.profileImg);
+      clearProfileImg();
+    } catch(e) {
+      console.log(e);
+    }
+  }
 
+  const deleteProfileImg = async () => {
+    const t = localStorage.getItem('token');
+    const resp = await axios.get(backendURL+'/verifyUser', {headers: {
+      'Authorization': `Bearer ${t}`
+    }});
+    const loginMsg = resp.data.message;
+    if(loginMsg === "Invalid token") {
+      alert("Please log in");
+      navigate("/");
+    }
+    try {
+      const resp2 = await axios.delete(backendURL+"/deleteProfileImg/"+user.id);
+      setProfileImg(null);
+    } catch(e) {
+      console.log(e);
+    }
+  }
+
+  const clearProfileImg = function() {
+    setNewProfileImg(null);
+    setNewProfileImgPreview(null);
+    document.getElementById("profileImg").value = "";
   }
 
   const clearImages = function() {
@@ -148,12 +193,12 @@ function EditProfile() {
     <button onClick={() => navigate("/home")}>Home</button>
     <button onClick={() => logOut()}>Log Out</button><br />
     {user && <p><strong>Welcome, {user.name}</strong></p>}
-    <ProfileImg src={silhouette}/>
+    {profileImg ? <ProfileImg src={profileImg.url}/> : <ProfileImg src={silhouette}/>}
     <input id="profileImg" type="file" accept="image/*" onChange={handleProfileImgChange} />
-    {newProfileImgPreview && <ProfileImg src={newProfileImgPreview} />}
+    {newProfileImgPreview && <ProfileImg src={newProfileImgPreview} />}<button onClick={clearProfileImg}>Clear Image</button>
     <br />
     <button onClick={createProfileImg}>Submit Image</button>
-    <button>Delete Image</button><br /><br />
+    <button onClick={deleteProfileImg}>Delete Image</button><br /><br />
     <div style={divStyle}>  
         <h2 style={headingStyle}>Create new post</h2>
         <div>

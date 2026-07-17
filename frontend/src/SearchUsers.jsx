@@ -22,12 +22,12 @@ function SearchUsers() {
       
       const loginMsg = resp.data.message;
       if(loginMsg === "Invalid token") {
-          alert("Please log in");
-          navigate('/');
+        alert("Please log in");
+        navigate('/');
       }
       else {
-          setUser(resp.data.user);
-          if(location.state?.users !== undefined) setUsers(location.state?.users);
+        setUser(resp.data.user);
+        if(location.state?.users !== undefined) setUsers(location.state?.users);
       }
     };
     grab();

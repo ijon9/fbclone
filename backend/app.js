@@ -12,6 +12,8 @@ import { prisma } from "./lib/prisma.js";
 // Make pressing enter work
 // Reload each page
 // Check keys are unique for every page
+// Check inputting empty image
+// Check every button verifies user first
 
 const app = express();
 
@@ -29,19 +31,101 @@ cloudinary.config({
   api_secret: process.env.API_SECRET
 });
 
+const deletePrevProfileImg = async (user) => {
+  if(user.profileImg !== -1) {
+    const oldPic = await prisma.image.findFirst({
+      where: { id: user.profileImg }
+    });
+    const d = await cloudinary.uploader.destroy(oldPic.publicId, {
+      invalidate: true
+    });
+    const d2 = await prisma.image.delete({
+      where: {id : oldPic.id }
+    });
+    await prisma.user.update({
+      where: {id : user.id},
+      data: { profileImg: -1}
+    })
+  }
+}
+
+app.delete("/deleteProfileImg/:id", async (req, res) => {
+  try {
+    const user = await prisma.user.findFirst({
+      where: {id : +req.params.id}
+    })
+    await deletePrevProfileImg(user);
+    res.send({message: "Success"})
+  } catch(e) {
+    console.log(e);
+    res.send({message: "Invalid query"});
+  }
+  
+})
+
+app.get("/getProfileImg/:id", async(req, res) => {
+  const userId = req.params.id;
+  try {
+    const user = await prisma.user.findFirst({
+      where: {id: +userId}
+    });
+    const profileImg = await prisma.image.findFirst({
+      where: {id: user.profileImg}
+    });
+    res.send({message: "Success", profileImg});
+  } catch(e) {
+    console.log(e);
+    res.send({message: "Invalid query"});
+  }
+})
+
+app.post("/createProfileImg", async (req, res) => {
+  const payload = req.body;
+  try {
+    const user = await prisma.user.findFirst({
+      where: { id: payload.userId }
+    })
+    // If there already is a profileImg, delete it first
+    await deletePrevProfileImg(user);
+    // Upload picture to cloudinary and db and set profileImg to the new img id
+    const img = await cloudinary.uploader.upload(payload.dataUrl, { resource_type: 'image' });
+    const imgDb = await prisma.image.create({
+        data: {
+          publicId: img.public_id,
+          url: img.secure_url,
+          postId: -1
+        }
+    });
+    await prisma.user.update({
+      where: {id : user.id},
+      data: { profileImg: imgDb.id }
+    });
+    res.send({message: "Success", profileImg: imgDb});
+  } catch(e) {
+    res.send({message: "Invalid query"});
+  }
+  
+})
+
 app.post("/searchUsers", async (req, res) => {
   const payload = req.body;
   try {
     const query = payload.query;
     const userId = payload.userId;
-    const users = await prisma.user.findMany({
-      where: {
-        AND: [
-          {name: { contains: query, mode: 'insensitive'}}, 
-          {id: {not: userId} }
-        ]
-      }
-    });
+    // Try to do a join to get the image url
+    // const users = await prisma.user.findMany({
+    //   where: {
+    //     AND: [
+    //       {name: { contains: query, mode: 'insensitive'}}, 
+    //       {id: {not: userId} }
+    //     ]
+    //   }
+    // });
+    const users = await prisma.$queryRaw`
+      SELECT u.id, u.name, i.url
+      FROM "User" u LEFT JOIN "Image" i ON i.id = u."profileImg"
+      WHERE LOWER(u.name) LIKE LOWER('%' || ${query} || '%') AND u.id != ${userId}
+    `;
     for(let i=0; i<users.length; i++) {
       const status = await prisma.friendships.findFirst({
         select: {
@@ -57,6 +141,7 @@ app.post("/searchUsers", async (req, res) => {
       if(status === null) users[i].status = "unsent";
       else users[i].status = status.status;
     }
+    console.log(users);
     return res.send({message: 'Success', users});
   } catch(e) {
     console.log(e);
