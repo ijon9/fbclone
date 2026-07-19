@@ -47,9 +47,9 @@ function Home() {
         navigate('/');
         return;
     }
-    const query = document.getElementById("findUser").value;
-    const resp2 = await axios.post(backendURL+"/searchUsers", {query, userId: user.id});
-    navigate('/searchUsers', {state: {users: resp2.data.users }});
+    // const query = document.getElementById("findUser").value;
+    // const resp2 = await axios.post(backendURL+"/searchUsers", {query, userId: user.id});
+    navigate('/searchUsers', {state: {query: document.getElementById("findUser").value }});
   }
 
   return (

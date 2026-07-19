@@ -14,6 +14,13 @@ import { prisma } from "./lib/prisma.js";
 // Check keys are unique for every page
 // Check inputting empty image
 // Check every button verifies user first
+// Remove all console.logs
+// Test synchronous interactions
+//    ex: Two users sending friend requests at same time
+//        Commenting or liking a deleted post
+// Make testLogin() return user
+// Make changes when error returned I think done with console.log(e)
+// Get mutual friend count
 
 const app = express();
 
@@ -104,6 +111,76 @@ app.post("/createProfileImg", async (req, res) => {
   } catch(e) {
     res.send({message: "Invalid query"});
   }
+})
+
+app.post("/acceptFriendReq", async (req, res) => {
+  const payload = req.body;
+  try {
+    const dir1 = await prisma.friendships.findFirst({
+      where: {userOne: payload.userOne, userTwo: payload.userTwo}
+    });
+    const dir2 = await prisma.friendships.findFirst({
+      where: {userTwo: payload.userOne, userOne: payload.userTwo}
+    });
+    await prisma.friendships.update({
+      where: {id: dir1.id},
+      data: {status: "friends"}
+    });
+    await prisma.friendships.update({
+      where: {id: dir2.id},
+      data: {status: "friends"}
+    });
+    res.send({message: "Success", status: "friends"})
+  } catch(e) {
+    console.log(e);
+    res.send({message: "Invalid query"});
+  }
+})
+
+app.post("/denyFriendReq", async (req, res) => {
+  const payload = req.body;
+  try {
+    const dir1 = await prisma.friendships.findFirst({
+      where: {userOne: payload.userOne, userTwo: payload.userTwo}
+    });
+    const dir2 = await prisma.friendships.findFirst({
+      where: {userTwo: payload.userOne, userOne: payload.userTwo}
+    });
+    await prisma.friendships.delete({
+      where: { id: dir1.id}
+    })
+    await prisma.friendships.delete({
+      where: { id: dir2.id }
+    })
+    res.send({message: "Success", status: "unsent"})
+  } catch(e) {
+    console.log(e);
+    res.send({message: "Invalid query"});
+  }
+})
+
+app.post("/sendFriendReq", async(req, res) => {
+  const payload = req.body;
+  try {
+    await prisma.friendships.create({
+      data: {
+        userOne: payload.userOne,
+        userTwo: payload.userTwo,
+        status: "sent"
+      }
+    });
+    await prisma.friendships.create({
+      data: {
+        userOne: payload.userTwo,
+        userTwo: payload.userOne,
+        status: "received"
+      }
+    });
+    res.send({message: "Success", status: "sent"});
+  } catch(e) {
+    console.log(e);
+    res.send({message: "Invalid query"});
+  }
   
 })
 
@@ -141,7 +218,6 @@ app.post("/searchUsers", async (req, res) => {
       if(status === null) users[i].status = "unsent";
       else users[i].status = status.status;
     }
-    console.log(users);
     return res.send({message: 'Success', users});
   } catch(e) {
     console.log(e);
