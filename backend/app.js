@@ -21,6 +21,16 @@ import { prisma } from "./lib/prisma.js";
 // Make testLogin() return user
 // Make changes when error returned I think done with console.log(e)
 // Get mutual friend count
+// Add buttons to head bar
+// Check imports are all used
+
+// Mutual friends
+// SELECT COUNT(f1.friend_id) AS mutual_friend_count
+// FROM friendships f1
+// JOIN friendships f2 
+//     ON f1.friend_id = f2.friend_id
+// WHERE f1.user_id = 1
+//   AND f2.user_id = 2;
 
 const app = express();
 
@@ -110,6 +120,51 @@ app.post("/createProfileImg", async (req, res) => {
     res.send({message: "Success", profileImg: imgDb});
   } catch(e) {
     res.send({message: "Invalid query"});
+  }
+})
+
+app.get("/getFriends/:id", async (req, res) => {
+  const userId = +req.params.id;
+  try {
+    const friends = await prisma.$queryRaw`
+      SELECT u.id,u.name,i.url FROM "User" u LEFT JOIN "Friendships" f ON u.id = f."userTwo"
+      LEFT JOIN "Image" i ON u."profileImg" = i.id
+      WHERE f."userOne" = ${userId} AND f.status = 'friends'
+    `;
+    res.send({message: "Success", friends});
+  } catch(e) {
+    console.log(e);
+    res.send({message: 'Invalid query'});
+  }
+})
+
+app.get("/getIncoming/:id", async (req, res) => {
+  const userId = +req.params.id;
+  try {
+    const incoming = await prisma.$queryRaw`
+      SELECT u.id,u.name,i.url FROM "User" u LEFT JOIN "Friendships" f ON u.id = f."userTwo"
+      LEFT JOIN "Image" i ON u."profileImg" = i.id
+      WHERE f."userOne" = ${userId} AND f.status = 'received'
+    `;
+    res.send({message: "Success", incoming});
+  } catch(e) {
+    console.log(e);
+    res.send({message: 'Invalid query'});
+  }
+});
+
+app.get("/getOutgoing/:id", async (req, res) => {
+  const userId = +req.params.id;
+  try {
+    const outgoing = await prisma.$queryRaw`
+      SELECT u.id,u.name,i.url FROM "User" u LEFT JOIN "Friendships" f ON u.id = f."userTwo"
+      LEFT JOIN "Image" i ON u."profileImg" = i.id
+      WHERE f."userOne" = ${userId} AND f.status = 'sent'
+    `;
+    res.send({message: "Success", outgoing});
+  } catch(e) {
+    console.log(e);
+    res.send({message: 'Invalid query'});
   }
 })
 

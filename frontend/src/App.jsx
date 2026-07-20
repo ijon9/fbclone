@@ -4,6 +4,7 @@ import Home from './Home.jsx';
 import LogIn from './LogIn.jsx';
 import EditProfile from './EditProfile.jsx'
 import SearchUsers  from './SearchUsers.jsx';
+import ManageRequests from './ManageRequests.jsx';
 
 function App() {
   const router = createBrowserRouter([
@@ -22,7 +23,11 @@ function App() {
     {
       path: "/searchUsers",
       element: <SearchUsers />
-    }
+    },
+    {
+      path: "/manageRequests",
+      element: <ManageRequests />
+    },
   ])
   return (
     <RouterProvider router={router} />

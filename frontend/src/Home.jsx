@@ -56,7 +56,9 @@ function Home() {
     <>
     <h1>FBClone</h1>
     <button onClick={() => navigate('/editProfile')}>Edit Profile</button>
+    <button onClick={() => navigate('/manageRequests')}>Manage Requests</button>
     <button onClick={() => logOut()}>Log Out</button><br />
+    <h2>Welcome, {user === null ? "" : user.name}</h2>
     <form onSubmit={handleSubmit}>
       <input type="text" id="findUser"></input><button type="submit">Search User</button><br />
     </form>

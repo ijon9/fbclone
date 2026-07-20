@@ -191,6 +191,7 @@ function EditProfile() {
     <>
     <h1> FBClone </h1>
     <button onClick={() => navigate("/home")}>Home</button>
+    <button onClick={() => navigate('/manageRequests')}>Manage Requests</button>
     <button onClick={() => logOut()}>Log Out</button><br />
     {user && <p><strong>Welcome, {user.name}</strong></p>}
     {profileImg ? <ProfileImg src={profileImg.url}/> : <ProfileImg src={silhouette}/>}
