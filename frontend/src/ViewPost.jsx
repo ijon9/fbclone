@@ -4,17 +4,21 @@ import { useNavigate } from 'react-router';
 import { Fragment } from 'react';
 
 
-function ViewPost({ post, setPosts }) {
+function ViewPost({ user, post, setPosts }) {
   const navigate = useNavigate();
   const [prevImgs, setPrevImgs] = useState([]);
+  const [comments, setComments] = useState([]);
   const backendURL = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
     const grab = async () => {
-        const resp = await axios.get(backendURL+"/getImgs/"+post.id);
-        if(resp.data.message === "Success") {
-            setPrevImgs(resp.data.imgs)
-        }
+      const resp = await axios.get(backendURL+"/getImgs/"+post.id);
+      if(resp.data.message === "Success") {
+          setPrevImgs(resp.data.imgs)
+      }
+      const resp2 = await axios.get(backendURL+"/getComments/"+post.id);
+      setComments(resp2.data.comments);
+      // console.log(resp2.data.comments);
     };  
     grab();
   }, []);
@@ -36,13 +40,12 @@ function ViewPost({ post, setPosts }) {
   function formatDate(d) {
     const date = new Date(d);
     const longFormatter = new Intl.DateTimeFormat('en-US', {
-        weekday: 'long',
+        weekday: 'short',
         year: 'numeric',
         month: 'long',
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-        second: '2-digit',
         hour12: true
     });
     return longFormatter.format(date);
@@ -57,6 +60,18 @@ function ViewPost({ post, setPosts }) {
 
   const textWrap = {
     overflowWrap: "break-word",
+  }
+
+  const handleSubmit = async function(e) {
+    e.preventDefault();
+    const payload = {
+      userId: user.id,
+      content: document.getElementById("addComm"+post.id).value,
+      postId: post.id
+    };
+    const resp = await axios.post(backendURL+"/createComment", payload);
+    document.getElementById("addComm"+post.id).value = "";
+    console.log(resp.data.comm);
   }
 
   return (
@@ -80,6 +95,20 @@ function ViewPost({ post, setPosts }) {
         <div style={{width: '100%'}}>
             <p style={textWrap}>{post.content}</p>
         </div>
+        <strong>Comments:</strong>
+        <div>
+          {comments.map((c) => {
+            return <div key={"comment"+c.id}>
+              {c.name + " "}
+              {c.content + " "}
+              {formatDate(c.date)}
+              </div>
+          })}
+        </div>
+        <form onSubmit={(e) => handleSubmit(e)}>
+          <input type="text" id={"addComm"+post.id}></input>
+          <button type="submit">Add Comment</button>
+        </form>
     </div>
     </>
   )

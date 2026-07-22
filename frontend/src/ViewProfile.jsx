@@ -62,6 +62,7 @@ function ViewProfile() {
     <>
     <h1> FBClone </h1>
     <button onClick={() => navigate("/home")}>Home</button>
+    <button onClick={() => navigate('/editProfile')}>Edit Profile</button>
     <button onClick={() => navigate('/manageRequests')}>Manage Requests</button>
     <button onClick={() => logOut()}>Log Out</button><br /><br />
     {profileImg ? <ProfileImg src={profileImg.url}/> : <ProfileImg src={silhouette}/>}
@@ -71,7 +72,7 @@ function ViewProfile() {
     <div style={postDivStyle}>
         {posts.map((post) => {
           // return <EditPost post={post} setPosts={setYourPosts} key={"editPost"+post.id}/>
-          return <ViewPost post={post} setPosts={setPosts} key={"viewPost"+post.id}/>
+          return <ViewPost user={user} post={post} setPosts={setPosts} key={"viewPost"+post.id}/>
           
         })}
     </div>

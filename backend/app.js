@@ -67,6 +67,40 @@ const deletePrevProfileImg = async (user) => {
   }
 }
 
+
+app.get("/getComments/:id", async (req, res) => {
+  const postId = +req.params.id;
+  try {
+    const comments = await prisma.$queryRaw`
+      SELECT c.id, u.name, c.content, c.date, i.url FROM 
+      "User" u LEFT JOIN "Comment" c ON u.id = c."authorId" 
+      LEFT JOIN "Image" i ON u."profileImg" = i.id
+      WHERE c."postId" = ${postId}
+    `;
+    res.send({message: "Success", comments});
+  } catch(e) {
+    console.log(e);
+    res.send({message: "Invalid query"});
+  }
+})
+
+app.post("/createComment", async (req, res) => {
+  const payload = req.body;
+  try {
+    const comm = await prisma.comment.create({
+      data: {
+        authorId: payload.userId,
+        content: payload.content,
+        postId: payload.postId
+      }
+    });
+    res.send({message: "Success", comm});
+  } catch(e) {
+    console.log(e);
+    res.send({message: "Invalid query"});
+  }
+})
+
 app.get("/getUser/:id", async (req, res) => {
   const userId = req.params.id;
   try {

@@ -51,13 +51,12 @@ function EditPost({ post, setPosts }) {
   function formatDate(d) {
     const date = new Date(d);
     const longFormatter = new Intl.DateTimeFormat('en-US', {
-        weekday: 'long',
+        weekday: 'short',
         year: 'numeric',
         month: 'long',
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-        second: '2-digit',
         hour12: true
     });
     return longFormatter.format(date);
