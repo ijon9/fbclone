@@ -5,6 +5,7 @@ import LogIn from './LogIn.jsx';
 import EditProfile from './EditProfile.jsx'
 import SearchUsers  from './SearchUsers.jsx';
 import ManageRequests from './ManageRequests.jsx';
+import ViewProfile from './ViewProfile.jsx';
 
 function App() {
   const router = createBrowserRouter([
@@ -27,6 +28,10 @@ function App() {
     {
       path: "/manageRequests",
       element: <ManageRequests />
+    },
+    {
+      path: "/viewProfile",
+      element: <ViewProfile />
     },
   ])
   return (

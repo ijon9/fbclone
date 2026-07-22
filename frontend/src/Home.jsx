@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react'
 import axios, { isCancel, AxiosError } from 'axios';
 import { useNavigate } from 'react-router';
+import silhouette from './silhouette.jpg'
+import ProfileImg from './ProfileImg';
 
 
 // export default FileUploader;
 
 function Home() {
   const [user, setUser] = useState(null);
+  const [profileImg, setProfileImg] = useState(null);
   const backendURL = import.meta.env.VITE_BACKEND_URL;
   const navigate = useNavigate();
 
@@ -22,10 +25,11 @@ function Home() {
       if(loginMsg === "Invalid token") {
           alert("Please log in");
           navigate('/');
+          return;
       }
-      else {
-          setUser(resp.data.user);
-      }
+      setUser(resp.data.user);
+      const resp2 = await axios.get(backendURL+"/getProfileImg/"+resp.data.user.id);
+      setProfileImg(resp2.data.profileImg)
     };
     grab();
   }, []);
@@ -58,7 +62,7 @@ function Home() {
     <button onClick={() => navigate('/editProfile')}>Edit Profile</button>
     <button onClick={() => navigate('/manageRequests')}>Manage Requests</button>
     <button onClick={() => logOut()}>Log Out</button><br />
-    <h2>Welcome, {user === null ? "" : user.name}</h2>
+    <h2>{profileImg ? <ProfileImg src={profileImg.url}/> : <ProfileImg src={silhouette}/>}Welcome, {user === null ? "" : user.name}</h2>
     <form onSubmit={handleSubmit}>
       <input type="text" id="findUser"></input><button type="submit">Search User</button><br />
     </form>

@@ -23,6 +23,7 @@ import { prisma } from "./lib/prisma.js";
 // Get mutual friend count
 // Add buttons to head bar
 // Check imports are all used
+// Delete sent friend request
 
 // Mutual friends
 // SELECT COUNT(f1.friend_id) AS mutual_friend_count
@@ -65,6 +66,19 @@ const deletePrevProfileImg = async (user) => {
     })
   }
 }
+
+app.get("/getUser/:id", async (req, res) => {
+  const userId = req.params.id;
+  try {
+    const user = await prisma.user.findFirst({
+      where: {id: +userId}
+    });
+    res.send({message: "Success", user});
+  } catch(e) {
+    console.log(e);
+    res.send({message: "Invalid query"});
+  }
+})
 
 app.delete("/deleteProfileImg/:id", async (req, res) => {
   try {

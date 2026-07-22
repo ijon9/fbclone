@@ -48,7 +48,8 @@ function SearchUsers() {
     display: "flex",
     alignItems: "center",
     gap: "5px",
-    flex: 1
+    flex: 1,
+    cursor: "pointer",
   }
 
   const cardStyle = {
@@ -118,6 +119,10 @@ function SearchUsers() {
     }
   }
 
+  function viewProfile(id) {
+    navigate('/viewProfile', {state: {id}})
+  }
+
   return (
     <>
     <h1>FBClone</h1>
@@ -130,7 +135,7 @@ function SearchUsers() {
         <h2>Users</h2>
         {users.map((u, ind) => {
             return <div style={cardStyle} key={"sUser"+u.id}>
-              <div style={nameAndPic}>
+              <div style={nameAndPic} onClick={() => viewProfile(u.id)}>
                 {u.url !== null ? <ProfileImg src={u.url} /> : <ProfileImg src={silhouette} />}{u.name}
               </div>
               {displayFriendButtons(u.id, u.status)}

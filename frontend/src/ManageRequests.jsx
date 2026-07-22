@@ -99,15 +99,6 @@ function ManageRequests() {
             return prev.filter((u) => {return u.id !== userTwo});
         })
       }
-    //   setUsers((prev) => {
-    //     const next = [...prev];
-    //     for(let i=0; i<next.length; i++) {
-    //       if(next[i].id === userTwo) {
-    //         next[i].status = resp2.data.status;
-    //       }
-    //     }
-    //     return next;
-    //   });
     } catch(e) {
       console.log(e);
     }
