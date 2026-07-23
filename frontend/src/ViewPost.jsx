@@ -7,10 +7,12 @@ import ProfileImg from './ProfileImg';
 import ReactTimeAgo from 'react-time-ago';
 
 
-function ViewPost({ profileImg, user, post, setPosts }) {
+function ViewPost({ profileImg, user, post, page }) {
   const navigate = useNavigate();
   const [prevImgs, setPrevImgs] = useState([]);
   const [comments, setComments] = useState([]);
+  const [likeCount, setLikeCount] = useState(0);
+  const [userLike, setUserLike] = useState(false);
   const backendURL = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
@@ -21,6 +23,10 @@ function ViewPost({ profileImg, user, post, setPosts }) {
       }
       const resp2 = await axios.get(backendURL+"/getComments/"+post.id);
       setComments(resp2.data.comments);
+      // Likes
+      const resp3 = await axios.get(backendURL+"/getLikes/"+post.id);
+      setLikeCount(resp3.data.likes);
+      // UserLike
     };  
     grab();
   }, []);
@@ -77,6 +83,10 @@ function ViewPost({ profileImg, user, post, setPosts }) {
       navigate("/");
       return;
     }
+    if(document.getElementById("addComm"+post.id).value === "") {
+      alert("Please enter non empty value");
+      return;
+    }
     const payload = {
       userId: user.id,
       content: document.getElementById("addComm"+post.id).value,
@@ -102,6 +112,25 @@ function ViewPost({ profileImg, user, post, setPosts }) {
     alignItems: "center",
     gap: "5px",
     flex: 1,
+    width: "70%"
+  }
+
+  async function createLike() {
+    const t = localStorage.getItem('token');
+    const resp = await axios.get(backendURL+'/verifyUser', {headers: {
+      'Authorization': `Bearer ${t}`
+    }});
+    const loginMsg = resp.data.message;
+    if(loginMsg === "Invalid token") {
+      alert("Please log in");
+      navigate("/");
+      return;
+    }
+    const payload = {
+      userId: user.id,
+      postId: post.id
+    };
+    const resp2 = await axios.post(backendURL+"/createLike", payload);
   }
 
   return (
@@ -128,7 +157,7 @@ function ViewPost({ profileImg, user, post, setPosts }) {
         <strong>Comments:</strong>
         <div style={{width: '100%'}}>
           {comments.map((c) => {
-            return <div style={{width: '80%'}} key={"comment"+c.id}>
+            return <div style={{width: '100%'}} key={"comment"+c.id}>
               <div style={nameAndPic}>
                 {c.url !== null ? <ProfileImg src={c.url} /> 
                 : <ProfileImg src={silhouette} />}
@@ -139,6 +168,7 @@ function ViewPost({ profileImg, user, post, setPosts }) {
             </div>
           })}
         </div>
+        <div>Likes: 5 <button onClick={() => createLike()}>Like</button></div>
         <form onSubmit={(e) => handleSubmit(e)}>
           <input type="text" id={"addComm"+post.id}></input>
           <button type="submit">Add Comment</button>

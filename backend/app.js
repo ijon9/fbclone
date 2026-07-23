@@ -33,7 +33,8 @@ import { prisma } from "./lib/prisma.js";
 // WHERE f1.user_id = 1
 //   AND f2.user_id = 2;
 // ViewProfile friends and mutual friends
-// Mutual friends
+// Send friend request from viewProfile page
+// Double likes
 
 const app = express();
 
@@ -68,6 +69,39 @@ const deletePrevProfileImg = async (user) => {
     })
   }
 }
+
+app.get("/getUserLike/:pid/:uid", async (req, res) => {
+  
+})
+
+app.get("/getLikes/:id", async (req, res) => {
+  const postId = +req.params.id;
+  try {
+    const likes = await prisma.likes.count({
+      where: {postId: postId}
+    });
+    res.send({ message: "Success", likes })
+  } catch(e) {
+    console.log(e);
+    res.send({message: "Invalid query"});
+  }
+})
+
+app.post("/createLike", async (req, res) => {
+  const payload = req.body;
+  try {
+    const like = await prisma.likes.create({
+      data: {
+        userId: payload.userId,
+        postId: payload.postId
+      }
+    });
+    res.send({ message: "Success", like })
+  } catch(e) {
+    console.log(e);
+    res.send({message: "Invalid query"});
+  }
+})
 
 app.get("/getComments/:id", async (req, res) => {
   const postId = +req.params.id;

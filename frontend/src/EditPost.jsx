@@ -207,6 +207,10 @@ function EditPost({ profileImg, user, post, setPosts }) {
       navigate("/");
       return;
     }
+    if(document.getElementById("epaddComm"+post.id).value === "") {
+      alert("Please enter non empty value");
+      return;
+    }
     const payload = {
       userId: user.id,
       content: document.getElementById("epaddComm"+post.id).value,
