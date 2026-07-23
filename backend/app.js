@@ -19,11 +19,11 @@ import { prisma } from "./lib/prisma.js";
 //    ex: Two users sending friend requests at same time
 //        Commenting or liking a deleted post
 // Make testLogin() return user
-// Make changes when error returned I think done with console.log(e)
 // Get mutual friend count
 // Add buttons to head bar
 // Check imports are all used
 // Delete sent friend request
+// Verify userse at every interaction
 
 // Mutual friends
 // SELECT COUNT(f1.friend_id) AS mutual_friend_count
@@ -32,6 +32,8 @@ import { prisma } from "./lib/prisma.js";
 //     ON f1.friend_id = f2.friend_id
 // WHERE f1.user_id = 1
 //   AND f2.user_id = 2;
+// ViewProfile friends and mutual friends
+// Mutual friends
 
 const app = express();
 
@@ -67,7 +69,6 @@ const deletePrevProfileImg = async (user) => {
   }
 }
 
-
 app.get("/getComments/:id", async (req, res) => {
   const postId = +req.params.id;
   try {
@@ -75,7 +76,7 @@ app.get("/getComments/:id", async (req, res) => {
       SELECT c.id, u.name, c.content, c.date, i.url FROM 
       "User" u LEFT JOIN "Comment" c ON u.id = c."authorId" 
       LEFT JOIN "Image" i ON u."profileImg" = i.id
-      WHERE c."postId" = ${postId}
+      WHERE c."postId" = ${postId} ORDER BY c.date DESC
     `;
     res.send({message: "Success", comments});
   } catch(e) {
@@ -99,6 +100,20 @@ app.post("/createComment", async (req, res) => {
     console.log(e);
     res.send({message: "Invalid query"});
   }
+})
+
+app.delete("/deleteComment/:id", async (req, res) => {
+  const commentId = +req.params.id;
+  try {
+    const comment = await prisma.comment.delete({
+      where: { id: commentId }
+    });
+    res.send({message: "Success", comment})
+  } catch(e) {
+    console.log(e);
+    res.send({message: "Invalid query"});
+  }
+  
 })
 
 app.get("/getUser/:id", async (req, res) => {
@@ -349,6 +364,9 @@ app.delete("/deletePost/:id", async (req, res) => {
       }
     })
     // Delete Comments
+    const deleteComments = await prisma.comment.deleteMany({
+      where: {postId: +postId}
+    });
     // Delete Likes
     return res.end({ message: "Success" });
   }
@@ -470,22 +488,6 @@ app.get("/getImgs/:id", async (req, res) => {
     console.log(e);
     return res.send({message: "Invalid query"});
   }
-})
-
-// Object.keys(user).forEach(key => {
-//   console.log(key);        // Logs: name, age, role
-//   console.log(user[key]);  // Logs: Alice, 25, Admin
-// });
-app.post("/upload", async (req, res) => {
-  const str = req.body.str;
-  try {
-    const url = await cloudinary.uploader.upload(str, { resource_type: 'image' });
-    console.log(url.secure_url);
-  }
-  catch(e) {
-    console.log(e);
-  }
-  res.send("Success");
 })
 
 app.get("/verifyUser", (req, res) => {

@@ -2,9 +2,12 @@ import { useState, useEffect } from 'react'
 import axios, { isCancel, AxiosError } from 'axios';
 import { useNavigate } from 'react-router';
 import { Fragment } from 'react';
+import silhouette from './silhouette.jpg'
+import ProfileImg from './ProfileImg';
+import ReactTimeAgo from 'react-time-ago';
 
 
-function ViewPost({ user, post, setPosts }) {
+function ViewPost({ profileImg, user, post, setPosts }) {
   const navigate = useNavigate();
   const [prevImgs, setPrevImgs] = useState([]);
   const [comments, setComments] = useState([]);
@@ -18,7 +21,6 @@ function ViewPost({ user, post, setPosts }) {
       }
       const resp2 = await axios.get(backendURL+"/getComments/"+post.id);
       setComments(resp2.data.comments);
-      // console.log(resp2.data.comments);
     };  
     grab();
   }, []);
@@ -40,9 +42,8 @@ function ViewPost({ user, post, setPosts }) {
   function formatDate(d) {
     const date = new Date(d);
     const longFormatter = new Intl.DateTimeFormat('en-US', {
-        weekday: 'short',
         year: 'numeric',
-        month: 'long',
+        month: 'numeric',
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
@@ -60,18 +61,47 @@ function ViewPost({ user, post, setPosts }) {
 
   const textWrap = {
     overflowWrap: "break-word",
+    maxWidth: "100%",
   }
 
   const handleSubmit = async function(e) {
     e.preventDefault();
+    // Verify User
+    const t = localStorage.getItem('token');
+    const resp = await axios.get(backendURL+'/verifyUser', {headers: {
+      'Authorization': `Bearer ${t}`
+    }});
+    const loginMsg = resp.data.message;
+    if(loginMsg === "Invalid token") {
+      alert("Please log in");
+      navigate("/");
+      return;
+    }
     const payload = {
       userId: user.id,
       content: document.getElementById("addComm"+post.id).value,
       postId: post.id
     };
-    const resp = await axios.post(backendURL+"/createComment", payload);
+    const resp2 = await axios.post(backendURL+"/createComment", payload);
     document.getElementById("addComm"+post.id).value = "";
-    console.log(resp.data.comm);
+    // console.log(resp2.data.comments);
+    const commentInfo = {
+      id: resp2.data.comm.id,
+      url: profileImg ? profileImg.url : null,
+      name: user.name,
+      content: resp2.data.comm.content,
+      date: resp2.data.comm.date
+    }
+    setComments((prev) => {
+      return [commentInfo, ...prev];
+    })
+  }
+
+  const nameAndPic = {
+    display: "flex",
+    alignItems: "center",
+    gap: "5px",
+    flex: 1,
   }
 
   return (
@@ -96,13 +126,17 @@ function ViewPost({ user, post, setPosts }) {
             <p style={textWrap}>{post.content}</p>
         </div>
         <strong>Comments:</strong>
-        <div>
+        <div style={{width: '100%'}}>
           {comments.map((c) => {
-            return <div key={"comment"+c.id}>
-              {c.name + " "}
-              {c.content + " "}
-              {formatDate(c.date)}
+            return <div style={{width: '80%'}} key={"comment"+c.id}>
+              <div style={nameAndPic}>
+                {c.url !== null ? <ProfileImg src={c.url} /> 
+                : <ProfileImg src={silhouette} />}
+                <strong>{c.name}:</strong><p style={textWrap}>{c.content}</p>
+              <strong><ReactTimeAgo date={c.date} locale="en-US" /></strong>
+
               </div>
+            </div>
           })}
         </div>
         <form onSubmit={(e) => handleSubmit(e)}>

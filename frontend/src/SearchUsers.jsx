@@ -9,6 +9,7 @@ import silhouette from './silhouette.jpg'
 
 function SearchUsers() {
   const [user, setUser] = useState(null);
+  const [profileImg, setProfileImg] = useState(null);
   const [users, setUsers] = useState([]);
   const backendURL = import.meta.env.VITE_BACKEND_URL;
   const navigate = useNavigate();
@@ -35,6 +36,8 @@ function SearchUsers() {
       setUser(resp.data.user);
       const resp2 = await axios.post(backendURL+"/searchUsers", {query, userId: resp.data.user.id});
       setUsers(resp2.data.users);
+      const resp3 = await axios.get(backendURL+"/getProfileImg/"+resp.data.user.id);
+      setProfileImg(resp3.data.profileImg);
     };
     grab();
   }, []);
@@ -129,8 +132,9 @@ function SearchUsers() {
     <button onClick={() => navigate('/editProfile')}>Edit Profile</button>
     <button onClick={() => navigate('/home')}>Home</button>
     <button onClick={() => navigate('/manageRequests')}>Manage Requests</button>
-    <button onClick={() => logOut()}>Log Out</button><br />
-    <h2>Welcome, {user === null ? "" : user.name}</h2>
+    <button onClick={() => logOut()}>Log Out</button><br /><br />
+    {profileImg ? <ProfileImg src={profileImg.url}/> : <ProfileImg src={silhouette}/>}
+    <h2 style={{marginTop: "5px"}}>Welcome, {user === null ? "" : user.name}</h2>
     <div>
         <h2>Users</h2>
         {users.map((u, ind) => {

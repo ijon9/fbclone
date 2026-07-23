@@ -2,13 +2,17 @@ import { useState, useEffect } from 'react'
 import axios, { isCancel, AxiosError } from 'axios';
 import { useNavigate } from 'react-router';
 import { Fragment } from 'react';
+import ProfileImg from './ProfileImg';
+import ReactTimeAgo from 'react-time-ago';
 
 
-function EditPost({ post, setPosts }) {
+
+function EditPost({ profileImg, user, post, setPosts }) {
   const navigate = useNavigate();
   const [prevImgs, setPrevImgs] = useState([]);
   const [postImgs, setPostImgs] = useState([]);
-  const [postPreviews, setPostPreviews] = useState([])
+  const [postPreviews, setPostPreviews] = useState([]);
+  const [comments, setComments] = useState([]);
   const backendURL = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
@@ -17,6 +21,8 @@ function EditPost({ post, setPosts }) {
         if(resp.data.message === "Success") {
             setPrevImgs(resp.data.imgs)
         }
+        const resp2 = await axios.get(backendURL+"/getComments/"+post.id);
+        setComments(resp2.data.comments);
     };  
     grab();
   }, []);
@@ -159,6 +165,69 @@ function EditPost({ post, setPosts }) {
     }
   }
 
+  const nameAndPic = {
+    display: "flex",
+    alignItems: "center",
+    gap: "5px",
+    flex: 1,
+  }
+
+  const textWrap = {
+    overflowWrap: "break-word",
+    maxWidth: "100%",
+  }
+
+  async function deleteComment(id) {
+    const t = localStorage.getItem('token');
+    const resp = await axios.get(backendURL+'/verifyUser', {headers: {
+      'Authorization': `Bearer ${t}`
+    }});
+    const loginMsg = resp.data.message;
+    if(loginMsg === "Invalid token") {
+      alert("Please log in");
+      navigate("/");
+      return;
+    }
+    const resp2 = await axios.delete(backendURL+"/deleteComment/"+id);
+    setComments((prev) => {
+      return prev.filter(c => c.id !== id);
+    })
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    // Verify User
+    const t = localStorage.getItem('token');
+    const resp = await axios.get(backendURL+'/verifyUser', {headers: {
+      'Authorization': `Bearer ${t}`
+    }});
+    const loginMsg = resp.data.message;
+    if(loginMsg === "Invalid token") {
+      alert("Please log in");
+      navigate("/");
+      return;
+    }
+    const payload = {
+      userId: user.id,
+      content: document.getElementById("epaddComm"+post.id).value,
+      postId: post.id
+    };
+    const resp2 = await axios.post(backendURL+"/createComment", payload);
+    document.getElementById("epaddComm"+post.id).value = "";
+    // console.log(resp2.data.comments);
+    const commentInfo = {
+      id: resp2.data.comm.id,
+      url: profileImg ? profileImg.url : null,
+      name: user.name,
+      content: resp2.data.comm.content,
+      date: resp2.data.comm.date
+    }
+    setComments((prev) => {
+      return [commentInfo, ...prev];
+    })
+  }
+
+
   return (
     <>
     <div style={outerDivStyle}>
@@ -194,8 +263,27 @@ function EditPost({ post, setPosts }) {
         <label for={"content"+post.id}>Content:</label>
         <textarea id={"content"+post.id} rows="5" cols="50" defaultValue={post.content} placeholder={post.content}>
         </textarea><br />
+        <div style={{width: '100%'}}>
+          {comments.map((c) => {
+            return <div style={{width: '75%'}} key={"epcomment"+c.id}>
+              <div style={nameAndPic}>
+                {c.url !== null ? <ProfileImg src={c.url} /> 
+                : <ProfileImg src={silhouette} />}
+                <strong>{c.name}:</strong><p style={textWrap}>{c.content}</p>
+              <strong><ReactTimeAgo date={c.date} locale="en-US" /></strong>
+              <button onClick={() => deleteComment(c.id)}>x</button>
+              </div>
+            </div>
+          })}
+        </div>
+        {/* <div>Likes:</div> */}
+        <form onSubmit={(e) => handleSubmit(e)}>
+          <input type="text" id={"epaddComm"+post.id}></input>
+          <button type="submit">Add Comment</button>
+        </form>
         <button onClick={() => saveChanges()}>Save Changes</button>
     </div>
+    
     </>
   )
 }

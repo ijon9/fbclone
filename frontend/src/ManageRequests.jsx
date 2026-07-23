@@ -12,6 +12,7 @@ function ManageRequests() {
   const [outgoing, setOutgoing] = useState([]);
   const [incoming, setIncoming] = useState([]);
   const [friends, setFriends] = useState([]);
+  const [profileImg, setProfileImg] = useState(null);
   const backendURL = import.meta.env.VITE_BACKEND_URL;
   const navigate = useNavigate();
   
@@ -31,6 +32,9 @@ function ManageRequests() {
         return;
       }
       setUser(resp.data.user);
+      // Profile Img
+      const resp5 = await axios.get(backendURL+"/getProfileImg/"+resp.data.user.id)
+      setProfileImg(resp5.data.profileImg);
       // Get incoming, outgoing, friends
       const resp2 = await axios.get(backendURL+'/getIncoming/'+resp.data.user.id);
       setIncoming(resp2.data.incoming);
@@ -143,8 +147,9 @@ function ManageRequests() {
     <h1>FBClone</h1>
     <button onClick={() => navigate('/editProfile')}>Edit Profile</button>
     <button onClick={() => navigate('/home')}>Home</button>
-    <button onClick={() => logOut()}>Log Out</button><br />
-    <h2>Welcome, {user === null ? "" : user.name}</h2>
+    <button onClick={() => logOut()}>Log Out</button><br /><br />
+    {profileImg !== null ? <ProfileImg src={profileImg.url}/> : <ProfileImg src={silhouette}/>}
+    <h2 style={{marginTop: "0px"}}>Welcome, {user === null ? "" : user.name}</h2>
     <div style={inAndOut}>
         <div style={border}>
             <h2 style={{textAlign: "center"}}>Incoming</h2>

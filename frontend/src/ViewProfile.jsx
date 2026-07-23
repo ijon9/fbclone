@@ -14,6 +14,7 @@ function ViewProfile() {
   const [user2Id, setUser2Id] = useState(location.state?.id === undefined ? null : location.state?.id);
   const [user2, setUser2] = useState(null);
   const [profileImg, setProfileImg] = useState(null);
+  const [userProfileImg, setUserProfileImg] = useState(null);
   const [posts, setPosts] = useState([]);
   const backendURL = import.meta.env.VITE_BACKEND_URL;
 
@@ -43,6 +44,9 @@ function ViewProfile() {
       // Grab profile img as well
       const resp4 = await axios.get(backendURL+'/getProfileImg/'+user2Id);
       setProfileImg(resp4.data.profileImg);
+      // User profile img
+      const resp5 = await axios.get(backendURL+'/getProfileImg/'+resp.data.user.id);
+      setUserProfileImg(resp5.data.profileImg);
     };
     grab();
   }, []);
@@ -72,7 +76,7 @@ function ViewProfile() {
     <div style={postDivStyle}>
         {posts.map((post) => {
           // return <EditPost post={post} setPosts={setYourPosts} key={"editPost"+post.id}/>
-          return <ViewPost user={user} post={post} setPosts={setPosts} key={"viewPost"+post.id}/>
+          return <ViewPost profileImg={userProfileImg} user={user} post={post} setPosts={setPosts} key={"viewPost"+post.id}/>
           
         })}
     </div>
