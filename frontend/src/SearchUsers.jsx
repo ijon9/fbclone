@@ -126,6 +126,12 @@ function SearchUsers() {
     navigate('/viewProfile', {state: {id}})
   }
 
+  function formatMutual(n) {
+    if(n === 0) return null;
+    else if(n === 1) return n+" mutual friend"
+    else return n + " mutual friends"
+  }
+
   return (
     <>
     <h1>FBClone</h1>
@@ -140,7 +146,8 @@ function SearchUsers() {
         {users.map((u, ind) => {
             return <div style={cardStyle} key={"sUser"+u.id}>
               <div style={nameAndPic} onClick={() => viewProfile(u.id)}>
-                {u.url !== null ? <ProfileImg src={u.url} /> : <ProfileImg src={silhouette} />}{u.name}
+                {u.url !== null ? <ProfileImg src={u.url} /> : <ProfileImg src={silhouette} />}
+                <div>{u.name}<br />{formatMutual(u.mutual)}</div>
               </div>
               {displayFriendButtons(u.id, u.status)}
             </div>

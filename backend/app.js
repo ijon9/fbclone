@@ -21,22 +21,19 @@ import { prisma } from "./lib/prisma.js";
 // Get mutual friend count
 // Add buttons to head bar
 // Check imports are all used
-// Delete sent friend request
 // Verify userse at every interaction
 
 // Mutual friends
-// SELECT COUNT(f1.friend_id) AS mutual_friend_count
-// FROM friendships f1
-// JOIN friendships f2 
-//     ON f1.friend_id = f2.friend_id
-// WHERE f1.user_id = 1
-//   AND f2.user_id = 2;
+
+
 // ViewProfile friends and mutual friends
 // Send friend request from viewProfile page
 // guest login
 // Display friends on view profile page
-//  clicking on it goes to view profile, no need to send requests
+//  clicking on it goes to view profile, also send friend request
 // Make pressing enter work
+// Delete sent friend request
+
 
 
 const app = express();
@@ -320,6 +317,14 @@ app.get("/getFriends/:id", async (req, res) => {
       LEFT JOIN "Image" i ON u."profileImg" = i.id
       WHERE f."userOne" = ${userId} AND f.status = 'friends'
     `;
+    for(let i=0; i<friends.length; i++) {
+      const mutual = await prisma.$queryRaw`
+        SELECT COUNT(f1."userOne") AS mutual FROM 
+        "Friendships" f1 LEFT JOIN "Friendships" f2 ON f1."userTwo" = f2."userTwo"
+        WHERE f1."userOne" = ${userId} AND f2."userOne" = ${friends[i].id} AND f1.status = 'friends' AND f2.status = 'friends'
+      `
+      friends[i].mutual = parseInt(mutual[0].mutual, 10);
+    }
     res.send({message: "Success", friends});
   } catch(e) {
     console.log(e);
@@ -335,6 +340,14 @@ app.get("/getIncoming/:id", async (req, res) => {
       LEFT JOIN "Image" i ON u."profileImg" = i.id
       WHERE f."userOne" = ${userId} AND f.status = 'received'
     `;
+    for(let i=0; i<incoming.length; i++) {
+      const mutual = await prisma.$queryRaw`
+        SELECT COUNT(f1."userOne") AS mutual FROM 
+        "Friendships" f1 LEFT JOIN "Friendships" f2 ON f1."userTwo" = f2."userTwo"
+        WHERE f1."userOne" = ${userId} AND f2."userOne" = ${incoming[i].id} AND f1.status = 'friends' AND f2.status = 'friends'
+      `
+      incoming[i].mutual = parseInt(mutual[0].mutual, 10);
+    }
     res.send({message: "Success", incoming});
   } catch(e) {
     console.log(e);
@@ -350,6 +363,14 @@ app.get("/getOutgoing/:id", async (req, res) => {
       LEFT JOIN "Image" i ON u."profileImg" = i.id
       WHERE f."userOne" = ${userId} AND f.status = 'sent'
     `;
+    for(let i=0; i<outgoing.length; i++) {
+      const mutual = await prisma.$queryRaw`
+        SELECT COUNT(f1."userOne") AS mutual FROM 
+        "Friendships" f1 LEFT JOIN "Friendships" f2 ON f1."userTwo" = f2."userTwo"
+        WHERE f1."userOne" = ${userId} AND f2."userOne" = ${outgoing[i].id} AND f1.status = 'friends' AND f2.status = 'friends'
+      `
+      outgoing[i].mutual = parseInt(mutual[0].mutual, 10);
+    }
     res.send({message: "Success", outgoing});
   } catch(e) {
     console.log(e);
@@ -452,7 +473,16 @@ app.post("/searchUsers", async (req, res) => {
       });
       if(status === null) users[i].status = "unsent";
       else users[i].status = status.status;
+      // Mutual Friends
+      const mutual = await prisma.$queryRaw`
+        SELECT COUNT(f1."userOne") AS mutual FROM 
+        "Friendships" f1 LEFT JOIN "Friendships" f2 ON f1."userTwo" = f2."userTwo"
+        WHERE f1."userOne" = ${userId} AND f2."userOne" = ${users[i].id} AND f1.status = 'friends' AND f2.status = 'friends'
+      `
+      users[i].mutual = parseInt(mutual[0].mutual, 10);
     }
+    console.log(users);
+
     return res.send({message: 'Success', users});
   } catch(e) {
     console.log(e);

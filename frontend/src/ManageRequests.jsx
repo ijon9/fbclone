@@ -147,6 +147,12 @@ function ManageRequests() {
     navigate('/viewProfile', {state: {id}})
   }
 
+  function formatMutual(n) {
+    if(n === 0) return null;
+    else if(n === 1) return n+" mutual friend"
+    else return n + " mutual friends"
+  }
+
   return (
     <>
     <h1>FBClone</h1>
@@ -161,7 +167,8 @@ function ManageRequests() {
             {incoming.map((u) => {
                 return <div style={cardStyle} key={"incoming"+u.id}>
               <div style={nameAndPic} onClick={() => viewProfile(u.id)}>
-                {u.url !== null ? <ProfileImg src={u.url} /> : <ProfileImg src={silhouette} />}{u.name}
+                {u.url !== null ? <ProfileImg src={u.url} /> : <ProfileImg src={silhouette} />}
+                <div>{u.name}<br />{formatMutual(u.mutual)}</div>
               </div>
               {displayFriendButtons(u.id, "received")}
             </div>
@@ -172,7 +179,8 @@ function ManageRequests() {
             {outgoing.map((u) => {
                 return <div style={cardStyle} key={"outgoing"+u.id}>
               <div style={nameAndPic} onClick={() => viewProfile(u.id)}>
-                {u.url !== null ? <ProfileImg src={u.url} /> : <ProfileImg src={silhouette} />}{u.name}
+                {u.url !== null ? <ProfileImg src={u.url} /> : <ProfileImg src={silhouette} />}
+                <div>{u.name}<br />{formatMutual(u.mutual)}</div>
               </div>
               {displayFriendButtons(u.id, "sent")}
             </div>
@@ -184,7 +192,8 @@ function ManageRequests() {
         {friends.map((u) => {
                 return <div style={cardStyle} key={"friends"+u.id}>
               <div style={nameAndPic} onClick={() => viewProfile(u.id)}>
-                {u.url !== null ? <ProfileImg src={u.url} /> : <ProfileImg src={silhouette} />}{u.name}
+                {u.url !== null ? <ProfileImg src={u.url} /> : <ProfileImg src={silhouette} />}
+                <div>{u.name}<br />{formatMutual(u.mutual)}</div>
               </div>
               {displayFriendButtons(u.id, "friends")}
             </div>
