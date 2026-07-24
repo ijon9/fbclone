@@ -20,7 +20,7 @@ function LogIn() {
       if(loginMsg === "Invalid token") {
       }
       else {
-          navigate('/home');
+        navigate('/home');
       }
     };
     grab();

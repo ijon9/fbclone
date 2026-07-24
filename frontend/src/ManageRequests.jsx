@@ -55,7 +55,8 @@ function ManageRequests() {
     display: "flex",
     alignItems: "center",
     gap: "5px",
-    flex: 1
+    flex: 1,
+    cursor: "pointer"
   }
 
   const cardStyle = {
@@ -142,6 +143,10 @@ function ManageRequests() {
     padding: "5px"
   }
 
+  function viewProfile(id) {
+    navigate('/viewProfile', {state: {id}})
+  }
+
   return (
     <>
     <h1>FBClone</h1>
@@ -155,7 +160,7 @@ function ManageRequests() {
             <h2 style={{textAlign: "center"}}>Incoming</h2>
             {incoming.map((u) => {
                 return <div style={cardStyle} key={"incoming"+u.id}>
-              <div style={nameAndPic}>
+              <div style={nameAndPic} onClick={() => viewProfile(u.id)}>
                 {u.url !== null ? <ProfileImg src={u.url} /> : <ProfileImg src={silhouette} />}{u.name}
               </div>
               {displayFriendButtons(u.id, "received")}
@@ -166,7 +171,7 @@ function ManageRequests() {
             <h2 style={{textAlign: "center"}}>Outgoing</h2>
             {outgoing.map((u) => {
                 return <div style={cardStyle} key={"outgoing"+u.id}>
-              <div style={nameAndPic}>
+              <div style={nameAndPic} onClick={() => viewProfile(u.id)}>
                 {u.url !== null ? <ProfileImg src={u.url} /> : <ProfileImg src={silhouette} />}{u.name}
               </div>
               {displayFriendButtons(u.id, "sent")}
@@ -178,7 +183,7 @@ function ManageRequests() {
         <h2 style={{textAlign: "center"}}> Friends </h2>
         {friends.map((u) => {
                 return <div style={cardStyle} key={"friends"+u.id}>
-              <div style={nameAndPic}>
+              <div style={nameAndPic} onClick={() => viewProfile(u.id)}>
                 {u.url !== null ? <ProfileImg src={u.url} /> : <ProfileImg src={silhouette} />}{u.name}
               </div>
               {displayFriendButtons(u.id, "friends")}

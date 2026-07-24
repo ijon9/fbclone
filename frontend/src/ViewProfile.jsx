@@ -76,7 +76,7 @@ function ViewProfile() {
     <div style={postDivStyle}>
         {posts.map((post) => {
           // return <EditPost post={post} setPosts={setYourPosts} key={"editPost"+post.id}/>
-          return <ViewPost profileImg={userProfileImg} user={user} post={post} page={"ViewProfile"} key={"viewPost"+post.id}/>
+          return <ViewPost profileImg={userProfileImg} user={user} post={post} page={"ViewProfile"} setPosts={setPosts} key={"viewPost"+post.id} />
           
         })}
     </div>

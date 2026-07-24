@@ -9,7 +9,6 @@ import { prisma } from "./lib/prisma.js";
 // npx prisma studio --config ./prisma.config.js
 
 // TODO
-// Make pressing enter work
 // Reload each page
 // Check keys are unique for every page
 // Check inputting empty image
@@ -34,7 +33,11 @@ import { prisma } from "./lib/prisma.js";
 //   AND f2.user_id = 2;
 // ViewProfile friends and mutual friends
 // Send friend request from viewProfile page
-// Double likes
+// guest login
+// Display friends on view profile page
+//  clicking on it goes to view profile, no need to send requests
+// Make pressing enter work
+
 
 const app = express();
 
@@ -69,9 +72,49 @@ const deletePrevProfileImg = async (user) => {
     })
   }
 }
+// const targetIds = [1, 5, 12, 42];
+// const users = await prisma.user.findMany({
+//   where: {
+//     id: {
+//       in: targetIds, // Matches any ID present in the list
+//     },
+//   },
+// });
+app.get("/getPostsHome/:id", async (req, res) => {
+  const userId = +req.params.id;
+  try {
+    const temp = await prisma.friendships.findMany({
+      where: {userOne: userId, status: "friends"}
+    });
+    const friends = temp.map((f) => f.userTwo);
+    const posts = await prisma.post.findMany({
+      where: {
+        userid: {in: friends}
+      },
+      orderBy: {date: "desc"}
+    });
+    res.send({message: "Success", posts})
+  } catch(e) {
+    console.log(e); 
+    res.send({message: "Invalid query"});
+  }
+})
 
 app.get("/getUserLike/:pid/:uid", async (req, res) => {
-  
+  const postId = +req.params.pid;
+  const userId = +req.params.uid;
+  try {
+    const like = await prisma.likes.findFirst({
+      where: {
+        postId,
+        userId
+      }
+    })
+    res.send({ message: "Success", like })
+  } catch(e) {
+    console.log(e);
+    res.send({message: "Invalid query"});
+  }
 })
 
 app.get("/getLikes/:id", async (req, res) => {
@@ -87,9 +130,51 @@ app.get("/getLikes/:id", async (req, res) => {
   }
 })
 
+app.delete("/deleteLike/:pid/:uid", async (req, res) => {
+  const postId = +req.params.pid;
+  const userId = +req.params.uid;
+  try {
+    const find2 = await prisma.post.findFirst({
+      where: {id: postId}
+    });
+    if(!find2) {
+      return res.send({message: "Post deleted", like: null});
+    }
+    const like = await prisma.likes.findFirst({
+      where: { postId, userId }
+    });
+    let like2;
+    if(like) {
+      like2 = await prisma.likes.delete({
+        where: {id: like.id}
+      });
+      return res.send({ message: "Success", like })
+    }
+    return res.send({message: "Already deleted", like: null})
+  } catch(e) {
+    console.log(e);
+    res.send({message: "Invalid query"});
+  }
+})
+
 app.post("/createLike", async (req, res) => {
   const payload = req.body;
   try {
+    const find2 = await prisma.post.findFirst({
+      where: {id: payload.postId}
+    });
+    if(!find2) {
+      return res.send({message: "Post deleted", like: null});
+    }
+    const find = await prisma.likes.findFirst({
+      where: { 
+        userId: payload.userId,
+        postId: payload.postId
+      }
+    });
+    if(find) {
+      return res.send({message: "Already liked", like: null});
+    }
     const like = await prisma.likes.create({
       data: {
         userId: payload.userId,
@@ -107,7 +192,7 @@ app.get("/getComments/:id", async (req, res) => {
   const postId = +req.params.id;
   try {
     const comments = await prisma.$queryRaw`
-      SELECT c.id, u.name, c.content, c.date, i.url FROM 
+      SELECT c.id, c."authorId", u.name, c.content, c.date, i.url FROM 
       "User" u LEFT JOIN "Comment" c ON u.id = c."authorId" 
       LEFT JOIN "Image" i ON u."profileImg" = i.id
       WHERE c."postId" = ${postId} ORDER BY c.date DESC
@@ -122,6 +207,13 @@ app.get("/getComments/:id", async (req, res) => {
 app.post("/createComment", async (req, res) => {
   const payload = req.body;
   try {
+    const post = await prisma.post.findFirst({
+      where: { id: payload.postId }
+    });
+    if(!post) {
+      console.log("Deleted");
+      return res.send({message: "Deleted post", comm: null})
+    }
     const comm = await prisma.comment.create({
       data: {
         authorId: payload.userId,
@@ -341,15 +433,6 @@ app.post("/searchUsers", async (req, res) => {
   try {
     const query = payload.query;
     const userId = payload.userId;
-    // Try to do a join to get the image url
-    // const users = await prisma.user.findMany({
-    //   where: {
-    //     AND: [
-    //       {name: { contains: query, mode: 'insensitive'}}, 
-    //       {id: {not: userId} }
-    //     ]
-    //   }
-    // });
     const users = await prisma.$queryRaw`
       SELECT u.id, u.name, i.url
       FROM "User" u LEFT JOIN "Image" i ON i.id = u."profileImg"
@@ -402,6 +485,9 @@ app.delete("/deletePost/:id", async (req, res) => {
       where: {postId: +postId}
     });
     // Delete Likes
+    const deleteLikes = await prisma.likes.deleteMany({
+      where: {postId: +postId}
+    })
     return res.end({ message: "Success" });
   }
   catch(e) {

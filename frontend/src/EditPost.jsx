@@ -13,6 +13,7 @@ function EditPost({ profileImg, user, post, setPosts }) {
   const [postImgs, setPostImgs] = useState([]);
   const [postPreviews, setPostPreviews] = useState([]);
   const [comments, setComments] = useState([]);
+  const [likeCount, setLikeCount] = useState(0);
   const backendURL = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
@@ -23,6 +24,8 @@ function EditPost({ profileImg, user, post, setPosts }) {
         }
         const resp2 = await axios.get(backendURL+"/getComments/"+post.id);
         setComments(resp2.data.comments);
+        const resp3 = await axios.get(backendURL+"/getLikes/"+post.id);
+        setLikeCount(resp3.data.likes);
     };  
     grab();
   }, []);
@@ -170,6 +173,7 @@ function EditPost({ profileImg, user, post, setPosts }) {
     alignItems: "center",
     gap: "5px",
     flex: 1,
+    cursor: "pointer"
   }
 
   const textWrap = {
@@ -219,16 +223,30 @@ function EditPost({ profileImg, user, post, setPosts }) {
     const resp2 = await axios.post(backendURL+"/createComment", payload);
     document.getElementById("epaddComm"+post.id).value = "";
     // console.log(resp2.data.comments);
+    if(resp2.data.comm === null) {
+      alert("Post deleted");
+      setPosts((prev) => prev.filter(p => p.id !== post.id));
+      return;
+    }
     const commentInfo = {
       id: resp2.data.comm.id,
       url: profileImg ? profileImg.url : null,
       name: user.name,
+      authorId: user.id,
       content: resp2.data.comm.content,
       date: resp2.data.comm.date
     }
     setComments((prev) => {
       return [commentInfo, ...prev];
     })
+  }
+
+  function viewProfile(id) {
+    if(id === user.id) {
+      alert("Already on Edit Profile");
+      return;
+    }
+    navigate('/viewProfile', {state: {id}})
   }
 
 
@@ -244,7 +262,7 @@ function EditPost({ profileImg, user, post, setPosts }) {
             {formatDate(post.date)}
             <button onClick={() => deletePost()}>Delete Post</button>
         </div>
-        Images: <br />
+        <strong>Images:</strong> <br />
         <div style={imgDiv}>
             {prevImgs.map((img, ind) => {
                 return <div key={"prevImgs"+img.id}>
@@ -270,7 +288,7 @@ function EditPost({ profileImg, user, post, setPosts }) {
         <div style={{width: '100%'}}>
           {comments.map((c) => {
             return <div style={{width: '75%'}} key={"epcomment"+c.id}>
-              <div style={nameAndPic}>
+              <div style={nameAndPic} onClick={() => viewProfile(c.authorId)}>
                 {c.url !== null ? <ProfileImg src={c.url} /> 
                 : <ProfileImg src={silhouette} />}
                 <strong>{c.name}:</strong><p style={textWrap}>{c.content}</p>
@@ -280,7 +298,7 @@ function EditPost({ profileImg, user, post, setPosts }) {
             </div>
           })}
         </div>
-        {/* <div>Likes:</div> */}
+        <div>Likes: {likeCount} </div>
         <form onSubmit={(e) => handleSubmit(e)}>
           <input type="text" id={"epaddComm"+post.id}></input>
           <button type="submit">Add Comment</button>

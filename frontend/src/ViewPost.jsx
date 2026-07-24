@@ -7,12 +7,14 @@ import ProfileImg from './ProfileImg';
 import ReactTimeAgo from 'react-time-ago';
 
 
-function ViewPost({ profileImg, user, post, page }) {
+function ViewPost({ profileImg, user, post, page, setPosts }) {
   const navigate = useNavigate();
   const [prevImgs, setPrevImgs] = useState([]);
   const [comments, setComments] = useState([]);
   const [likeCount, setLikeCount] = useState(0);
   const [userLike, setUserLike] = useState(false);
+  const [authorProfileImg, setAuthorProfileImg] = useState(null);
+  const [author, setAuthor] = useState(null);
   const backendURL = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
@@ -27,6 +29,15 @@ function ViewPost({ profileImg, user, post, page }) {
       const resp3 = await axios.get(backendURL+"/getLikes/"+post.id);
       setLikeCount(resp3.data.likes);
       // UserLike
+      const resp4 = await axios.get(backendURL+"/getUserLike/"+post.id+'/'+user.id);
+      setUserLike(resp4.data.like ? true : false);
+      // Profile img for home page
+      if(page === "Home") {
+        const resp5 = await axios.get(backendURL+'/getProfileImg/'+post.userid);
+        setAuthorProfileImg(resp5.data.profileImg);
+        const resp6 = await axios.get(backendURL+"/getUser/"+post.userid);
+        setAuthor(resp6.data.user);
+      }
     };  
     grab();
   }, []);
@@ -95,10 +106,16 @@ function ViewPost({ profileImg, user, post, page }) {
     const resp2 = await axios.post(backendURL+"/createComment", payload);
     document.getElementById("addComm"+post.id).value = "";
     // console.log(resp2.data.comments);
+    if(resp2.data.comm === null) {
+      alert("Post deleted");
+      setPosts((prev) => prev.filter(p => p.id !== post.id));
+      return;
+    }
     const commentInfo = {
       id: resp2.data.comm.id,
       url: profileImg ? profileImg.url : null,
       name: user.name,
+      authorId: user.id,
       content: resp2.data.comm.content,
       date: resp2.data.comm.date
     }
@@ -112,7 +129,8 @@ function ViewPost({ profileImg, user, post, page }) {
     alignItems: "center",
     gap: "5px",
     flex: 1,
-    width: "70%"
+    width: "70%",
+    cursor: "pointer"
   }
 
   async function createLike() {
@@ -131,11 +149,76 @@ function ViewPost({ profileImg, user, post, page }) {
       postId: post.id
     };
     const resp2 = await axios.post(backendURL+"/createLike", payload);
+    if(resp2.data.message === "Post deleted") {
+      alert("Post deleted");
+      setPosts((prev) => prev.filter(p => p.id !== post.id));
+      return;
+    }
+    setLikeCount((prev) => prev + 1);
+    setUserLike(true);
+  }
+
+  async function deleteLike() {
+    const t = localStorage.getItem('token');
+    const resp = await axios.get(backendURL+'/verifyUser', {headers: {
+      'Authorization': `Bearer ${t}`
+    }});
+    const loginMsg = resp.data.message;
+    if(loginMsg === "Invalid token") {
+      alert("Please log in");
+      navigate("/");
+      return;
+    }
+    const payload = {
+      userId: user.id,
+      postId: post.id
+    };
+    const resp2 = await axios.delete(backendURL+"/deleteLike/"+post.id+"/"+user.id);
+    if(resp2.data.message === "Post deleted") {
+      alert("Post deleted");
+      setPosts((prev) => prev.filter(p => p.id !== post.id));
+      return;
+    }
+    setLikeCount((prev) => prev-1);
+    setUserLike(false);
+  }
+
+  const headerStyle = {
+    display: "flex",
+    alignItems: "center",
+    gap: "5px",
+    cursor: "pointer"
+  }
+
+  function viewProfile(id) {
+    if(id === user.id) {
+      alert("Click Edit Profile to view your information")
+      return;
+    }
+    navigate('/viewProfile', {state: {id}})
+  }
+
+  function header() {
+    if(page !== "Home") {
+      return null;
+    }
+    if(!authorProfileImg && author) {
+      return <div style={headerStyle} onClick={() => viewProfile(author.id)}>
+        <ProfileImg src={silhouette}/> {author.name}
+      </div>
+    }
+    if(authorProfileImg && author) {
+      return <div style={headerStyle} onClick={() => viewProfile(author.id)}>
+        <ProfileImg src={authorProfileImg.url}/> {author.name}
+      </div>
+    }
+    else return null;
   }
 
   return (
     <>
     <div style={outerDivStyle}>
+      {header()}
         <div style={innerDivStyle}>
             <div>
                 <strong>Title:</strong> {post.title}
@@ -158,7 +241,7 @@ function ViewPost({ profileImg, user, post, page }) {
         <div style={{width: '100%'}}>
           {comments.map((c) => {
             return <div style={{width: '100%'}} key={"comment"+c.id}>
-              <div style={nameAndPic}>
+              <div style={nameAndPic} onClick={() => viewProfile(c.authorId)}>
                 {c.url !== null ? <ProfileImg src={c.url} /> 
                 : <ProfileImg src={silhouette} />}
                 <strong>{c.name}:</strong><p style={textWrap}>{c.content}</p>
@@ -168,7 +251,12 @@ function ViewPost({ profileImg, user, post, page }) {
             </div>
           })}
         </div>
-        <div>Likes: 5 <button onClick={() => createLike()}>Like</button></div>
+        <div>Likes: {likeCount + " "}
+          {
+            userLike ? <button onClick={() => deleteLike()}>Unlike</button>
+            : <button onClick={() => createLike()}>Like</button>
+          }
+        </div>
         <form onSubmit={(e) => handleSubmit(e)}>
           <input type="text" id={"addComm"+post.id}></input>
           <button type="submit">Add Comment</button>
