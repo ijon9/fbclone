@@ -33,6 +33,8 @@ import { prisma } from "./lib/prisma.js";
 //  clicking on it goes to view profile, also send friend request
 // Make pressing enter work
 // Delete sent friend request
+// View profile verify user
+// Move profile img above buttons
 
 
 
@@ -305,6 +307,46 @@ app.post("/createProfileImg", async (req, res) => {
     });
     res.send({message: "Success", profileImg: imgDb});
   } catch(e) {
+    console.log(e);
+    res.send({message: "Invalid query"});
+  }
+})
+
+app.get("/getFriendsVP/:uid/:profileId", async (req, res) => {
+  const userId = +req.params.uid;
+  const profileId = +req.params.profileId;
+  try {
+    const friends = await prisma.$queryRaw`
+      SELECT u.id,u.name,i.url FROM "User" u LEFT JOIN "Friendships" f ON u.id = f."userTwo"
+      LEFT JOIN "Image" i ON u."profileImg" = i.id
+      WHERE f."userOne" = ${profileId} AND f.status = 'friends'
+    `;
+    for(let i=0; i<friends.length; i++) {
+      const status = await prisma.friendships.findFirst({
+        select: {
+          status: true
+        },
+        where: {
+          AND: [
+            {userOne: userId},
+            {userTwo: friends[i].id}
+          ]
+        }
+      });
+      if(status === null) friends[i].status = "unsent";
+      else friends[i].status = status.status;
+    }
+    for(let i=0; i<friends.length; i++) {
+      const mutual = await prisma.$queryRaw`
+        SELECT COUNT(f1."userOne") AS mutual FROM 
+        "Friendships" f1 LEFT JOIN "Friendships" f2 ON f1."userTwo" = f2."userTwo"
+        WHERE f1."userOne" = ${userId} AND f2."userOne" = ${friends[i].id} AND f1.status = 'friends' AND f2.status = 'friends'
+      `
+      friends[i].mutual = parseInt(mutual[0].mutual, 10);
+    }
+    res.send({message: "Success", friends})
+  } catch(e) {
+    console.log(e);
     res.send({message: "Invalid query"});
   }
 })

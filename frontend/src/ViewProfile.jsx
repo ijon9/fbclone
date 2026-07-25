@@ -16,6 +16,7 @@ function ViewProfile() {
   const [profileImg, setProfileImg] = useState(null);
   const [userProfileImg, setUserProfileImg] = useState(null);
   const [posts, setPosts] = useState([]);
+  const [friends, setFriends] = useState([]);
   const backendURL = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
@@ -47,9 +48,12 @@ function ViewProfile() {
       // User profile img
       const resp5 = await axios.get(backendURL+'/getProfileImg/'+resp.data.user.id);
       setUserProfileImg(resp5.data.profileImg);
+      // Get friends
+      const resp6 = await axios.get(backendURL+'/getFriendsVP/'+resp.data.user.id+"/"+resp2.data.user.id)
+      setFriends(resp6.data.friends);
     };
     grab();
-  }, []);
+  }, [user2Id]);
 
   const postDivStyle = {
     display: "flex",
@@ -60,6 +64,107 @@ function ViewProfile() {
   function logOut() {
     localStorage.removeItem('token');
     navigate('/');
+  }
+
+  async function respond(userTwo, response) {
+    const t = localStorage.getItem('token');
+    const resp = await axios.get(backendURL+'/verifyUser', {headers: {
+      'Authorization': `Bearer ${t}`
+    }});
+    
+    const loginMsg = resp.data.message;
+    if(loginMsg === "Invalid token") {
+      alert("Please log in");
+      navigate('/');
+      return;
+    }
+    const payload = {
+      userOne: user.id,
+      userTwo
+    }
+    try {
+      let resp2 = null;
+      if(response === "send") {
+        resp2 = await axios.post(backendURL+"/sendFriendReq", payload);
+        setFriends(prev => 
+          prev.map(f => f.id === userTwo ? {...f, status: "sent"} : f)
+        )
+      }
+      else if(response === "accept") {
+        resp2 = await axios.post(backendURL+"/acceptFriendReq", payload);
+        setFriends(prev => 
+          prev.map(f => f.id === userTwo ? {...f, status: "friends"} : f)
+        )
+      }
+      else if(response === "deny") {
+        resp2 = await axios.post(backendURL+"/denyFriendReq", payload);
+        setFriends(prev => 
+          prev.map(f => f.id === userTwo ? {...f, status: "unsent"} : f)
+        )
+      }
+      else if(response === "remove") {
+        resp2 = axios.post(backendURL+"/denyFriendReq", payload);
+        setFriends(prev => 
+          prev.map(f => f.id === userTwo ? {...f, status: "unsent"} : f)
+        )
+      }
+    } catch(e) {
+      console.log(e);
+    }
+  }
+
+  function formatMutual(n) {
+    if(n === 0) return null;
+    else if(n === 1) return n+" mutual friend"
+    else return n + " mutual friends"
+  }
+
+  function displayFriendButtons(id, status) {
+    if(id === user.id) {
+      return <div>You</div>;
+    }
+    else if(status === "sent") {
+      return <div>Waiting for response...</div>
+    }
+    else if(status === "friends") {
+      return <div>
+        <button onClick={() => respond(id, "remove")}>Remove friend</button>
+      </div>
+    }
+    else if(status === "received") {
+      return <div>
+        <button onClick={() => respond(id, "accept")}>Accept</button>
+        <button onClick={() => respond(id, "deny")}>Deny</button>
+      </div>
+    } 
+    // status === unsent
+    else {
+      return <div>
+        <button onClick={() => respond(id, "send")}>Send friend request</button>
+      </div>
+    }
+  }
+
+  const cardStyle = {
+    display: "flex",
+    alignItems: "center"
+  }
+
+  const nameAndPic = {
+    display: "flex",
+    alignItems: "center",
+    gap: "5px",
+    flex: 1,
+    cursor: "pointer"
+  }
+
+  function viewProfile(id) {
+    // navigate('/viewProfile', {state: {id}})
+    if(id === user.id) {
+      alert("Click Edit Profile to view your information")
+      return;
+    }
+    setUser2Id(id);
   }
   
   return (
@@ -76,9 +181,20 @@ function ViewProfile() {
     <div style={postDivStyle}>
         {posts.map((post) => {
           // return <EditPost post={post} setPosts={setYourPosts} key={"editPost"+post.id}/>
-          return <ViewPost profileImg={userProfileImg} user={user} post={post} page={"ViewProfile"} setPosts={setPosts} key={"viewPost"+post.id} />
-          
+          return <ViewPost setUser2Id={setUser2Id} profileImg={userProfileImg} user={user} post={post} page={"ViewProfile"} setPosts={setPosts} key={"viewPost"+post.id} />
         })}
+    </div>
+    <h2>{user2 ? user2.name: ""}'s Friends</h2>
+    <div>
+        {friends.map((u) => {
+                return <div style={cardStyle} key={"friends"+u.id}>
+              <div style={nameAndPic} onClick={() => viewProfile(u.id)}>
+                {u.url !== null ? <ProfileImg src={u.url} /> : <ProfileImg src={silhouette} />}
+                <div>{u.name}<br />{formatMutual(u.mutual)}</div>
+              </div>
+              {displayFriendButtons(u.id, u.status)}
+            </div>
+            })}
     </div>
     </>
   )

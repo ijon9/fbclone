@@ -7,7 +7,7 @@ import ProfileImg from './ProfileImg';
 import ReactTimeAgo from 'react-time-ago';
 
 
-function ViewPost({ profileImg, user, post, page, setPosts }) {
+function ViewPost({ setUser2Id, profileImg, user, post, page, setPosts }) {
   const navigate = useNavigate();
   const [prevImgs, setPrevImgs] = useState([]);
   const [comments, setComments] = useState([]);
@@ -195,7 +195,11 @@ function ViewPost({ profileImg, user, post, page, setPosts }) {
       alert("Click Edit Profile to view your information")
       return;
     }
-    navigate('/viewProfile', {state: {id}})
+    if(page === "Home") {
+      navigate("/viewProfile", {state : {id}});
+      return;
+    }
+    setUser2Id(id)
   }
 
   function header() {
@@ -240,14 +244,17 @@ function ViewPost({ profileImg, user, post, page, setPosts }) {
         <strong>Comments:</strong>
         <div style={{width: '100%'}}>
           {comments.map((c) => {
-            return <div style={{width: '100%'}} key={"comment"+c.id}>
+            return <div style={{width: '75%', display:"flex", alignItems: "center"}} key={"comment"+c.id}>
               <div style={nameAndPic} onClick={() => viewProfile(c.authorId)}>
                 {c.url !== null ? <ProfileImg src={c.url} /> 
                 : <ProfileImg src={silhouette} />}
-                <strong>{c.name}:</strong><p style={textWrap}>{c.content}</p>
-              <strong><ReactTimeAgo date={c.date} locale="en-US" /></strong>
-
+                <strong>{c.name}:</strong>
               </div>
+              <div style={{width: "75%", display: "flex", alignItems: "center", justifyContent: "left"}}>
+                <p style={textWrap}>{c.content}</p>&nbsp;
+              <strong><ReactTimeAgo date={c.date} locale="en-US" /></strong>
+              </div>
+              
             </div>
           })}
         </div>

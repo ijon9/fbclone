@@ -287,13 +287,17 @@ function EditPost({ profileImg, user, post, setPosts }) {
         </textarea><br />
         <div style={{width: '100%'}}>
           {comments.map((c) => {
-            return <div style={{width: '75%'}} key={"epcomment"+c.id}>
+            return <div style={{display: "flex", width: "75%", alignItems:"center"}} key={"epcomment"+c.id}>
               <div style={nameAndPic} onClick={() => viewProfile(c.authorId)}>
                 {c.url !== null ? <ProfileImg src={c.url} /> 
                 : <ProfileImg src={silhouette} />}
-                <strong>{c.name}:</strong><p style={textWrap}>{c.content}</p>
-              <strong><ReactTimeAgo date={c.date} locale="en-US" /></strong>
-              <button onClick={() => deleteComment(c.id)}>x</button>
+                <strong>{c.name}:</strong>
+              </div>
+              <div style={{display: "flex", width: "75%", alignItems: "center", justifyContent: "space-around"}}>
+
+                <p style={textWrap}>{c.content}</p>
+                <strong><ReactTimeAgo date={c.date} locale="en-US" /></strong>
+                <button onClick={() => deleteComment(c.id)}>x</button>
               </div>
             </div>
           })}
