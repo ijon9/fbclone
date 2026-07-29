@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router';
 import { Fragment } from 'react';
 import ProfileImg from './ProfileImg';
 import ReactTimeAgo from 'react-time-ago';
+import silhouette from './silhouette.jpg'
+
 
 
 
