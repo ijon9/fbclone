@@ -84,6 +84,13 @@ function ManageRequests() {
       let resp2 = null;
       if(response === "accept") {
         resp2 = await axios.post(backendURL+"/acceptFriendReq", payload);
+        if(resp2.data.message === "Deleted") {
+          alert("Friend request was deleted")
+          setIncoming((prev) => {
+            return prev.filter((u) => {return u.id !== userTwo});
+          })
+          return;
+        } 
         const u2 = incoming.find(u => u.id === userTwo);
         setIncoming((prev) => {
             return prev.filter((u) => {return u.id !== userTwo});
@@ -100,6 +107,9 @@ function ManageRequests() {
       }
       else if(response === "remove") {
         resp2 = axios.post(backendURL+"/denyFriendReq", payload);
+        setOutgoing((prev) => {
+            return prev.filter((u) => {return u.id !== userTwo});
+        })
         setFriends((prev) => {
             return prev.filter((u) => {return u.id !== userTwo});
         })
@@ -111,7 +121,9 @@ function ManageRequests() {
 
   function displayFriendButtons(id, status) {
     if(status === "sent") {
-      return <div>Waiting for response...</div>
+      return <div>
+        <button onClick={() => respond(id, "remove")}>Cancel request</button>
+        </div>
     }
     else if(status === "friends") {
       return <div>
@@ -156,11 +168,11 @@ function ManageRequests() {
   return (
     <>
     <h1>FBClone</h1>
+    {profileImg !== null ? <ProfileImg src={profileImg.url}/> : <ProfileImg src={silhouette}/>}
+    <h2 style={{marginTop: "0px"}}>Welcome, {user === null ? "" : user.name}</h2>
     <button onClick={() => navigate('/editProfile')}>Edit Profile</button>
     <button onClick={() => navigate('/home')}>Home</button>
     <button onClick={() => logOut()}>Log Out</button><br /><br />
-    {profileImg !== null ? <ProfileImg src={profileImg.url}/> : <ProfileImg src={silhouette}/>}
-    <h2 style={{marginTop: "0px"}}>Welcome, {user === null ? "" : user.name}</h2>
     <div style={inAndOut}>
         <div style={border}>
             <h2 style={{textAlign: "center"}}>Incoming</h2>

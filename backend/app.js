@@ -35,6 +35,8 @@ import { prisma } from "./lib/prisma.js";
 // Delete sent friend request
 // View profile verify user
 // Move profile img above buttons
+// Double delete post
+// Mange requests to manage friends
 
 
 
@@ -429,6 +431,9 @@ app.post("/acceptFriendReq", async (req, res) => {
     const dir2 = await prisma.friendships.findFirst({
       where: {userTwo: payload.userOne, userOne: payload.userTwo}
     });
+    if(dir1 === null || dir2 === null) {
+      return res.send({message: "Deleted", status: "unsent"})
+    }
     await prisma.friendships.update({
       where: {id: dir1.id},
       data: {status: "friends"}
@@ -447,17 +452,23 @@ app.post("/acceptFriendReq", async (req, res) => {
 app.post("/denyFriendReq", async (req, res) => {
   const payload = req.body;
   try {
-    const dir1 = await prisma.friendships.findFirst({
-      where: {userOne: payload.userOne, userTwo: payload.userTwo}
-    });
-    const dir2 = await prisma.friendships.findFirst({
-      where: {userTwo: payload.userOne, userOne: payload.userTwo}
-    });
-    await prisma.friendships.delete({
-      where: { id: dir1.id}
+    // const dir1 = await prisma.friendships.findFirst({
+    //   where: {userOne: payload.userOne, userTwo: payload.userTwo}
+    // });
+    // const dir2 = await prisma.friendships.findFirst({
+    //   where: {userTwo: payload.userOne, userOne: payload.userTwo}
+    // });
+    // await prisma.friendships.deleteMany({
+    //   where: { id: dir1.id}
+    // })
+    // await prisma.friendships.deleteMany({
+    //   where: { id: dir2.id }
+    // })
+    await prisma.friendships.deleteMany({
+      where: { userOne: payload.userOne, userTwo: payload.userTwo}
     })
-    await prisma.friendships.delete({
-      where: { id: dir2.id }
+    await prisma.friendships.deleteMany({
+      where: {userOne: payload.userTwo, userTwo: payload.userOne }
     })
     res.send({message: "Success", status: "unsent"})
   } catch(e) {
@@ -469,6 +480,12 @@ app.post("/denyFriendReq", async (req, res) => {
 app.post("/sendFriendReq", async(req, res) => {
   const payload = req.body;
   try {
+    const prev = await prisma.friendships.findFirst({
+      where: {userOne: payload.userOne, userTwo: payload.userTwo}
+    })
+    if(prev !== null) {
+      return res.send({message: "Friend request already sent", status: prev.status})
+    }
     await prisma.friendships.create({
       data: {
         userOne: payload.userOne,
@@ -488,7 +505,27 @@ app.post("/sendFriendReq", async(req, res) => {
     console.log(e);
     res.send({message: "Invalid query"});
   }
-  
+})
+
+app.get("/getOneFriend/:uid1/:uid2", async(req, res) => {
+  const user1 = +req.params.uid1;
+  const user2 = +req.params.uid2;
+  try {
+    const fs = await prisma.friendships.findFirst({
+      where: {userOne: user1, userTwo: user2}
+    });
+    const mutual = await prisma.$queryRaw`
+        SELECT COUNT(f1."userOne") AS mutual FROM 
+        "Friendships" f1 LEFT JOIN "Friendships" f2 ON f1."userTwo" = f2."userTwo"
+        WHERE f1."userOne" = ${user1} AND f2."userOne" = ${user2} AND f1.status = 'friends' AND f2.status = 'friends'
+      `
+    const mutualFriends = parseInt(mutual[0].mutual, 10);
+    if(fs === null) return res.send({message: "Success", status: "unsent", mutual: mutualFriends});
+    res.send({message: "Success", status: fs.status, mutual: mutualFriends});
+  } catch(e) {
+    console.log(e);
+    res.send({message: "Invalid query"});
+  }
 })
 
 app.post("/searchUsers", async (req, res) => {
@@ -523,7 +560,6 @@ app.post("/searchUsers", async (req, res) => {
       `
       users[i].mutual = parseInt(mutual[0].mutual, 10);
     }
-    console.log(users);
 
     return res.send({message: 'Success', users});
   } catch(e) {

@@ -80,9 +80,15 @@ function SearchUsers() {
       let resp2 = null;
       if(response === "send") {
         resp2 = await axios.post(backendURL+"/sendFriendReq", payload);
+        if(resp2.data.message === "Friend request already sent") {
+          alert("Friend request already sent")
+        }
       }
       else if(response === "accept") {
         resp2 = await axios.post(backendURL+"/acceptFriendReq", payload);
+        if(resp2.data.message === "Deleted") {
+          alert("Friend request was deleted");
+        }
       }
       else if(response === "deny") {
         resp2 = await axios.post(backendURL+"/denyFriendReq", payload);
@@ -103,7 +109,9 @@ function SearchUsers() {
 
   function displayFriendButtons(id, status) {
     if(status === "sent") {
-      return <div>Waiting for response...</div>
+      return <div>
+        <button onClick={() => respond(id, "deny")}>Cancel request</button>
+      </div>
     }
     else if(status === "friends") {
       return <div>Friends!</div>

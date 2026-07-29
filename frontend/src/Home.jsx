@@ -69,10 +69,10 @@ function Home() {
   return (
     <>
     <h1>FBClone</h1>
+    <h2>{profileImg ? <ProfileImg src={profileImg.url}/> : <ProfileImg src={silhouette}/>}Welcome, {user === null ? "" : user.name}</h2>
     <button onClick={() => navigate('/editProfile')}>Edit Profile</button>
     <button onClick={() => navigate('/manageRequests')}>Manage Requests</button>
-    <button onClick={() => logOut()}>Log Out</button><br />
-    <h2>{profileImg ? <ProfileImg src={profileImg.url}/> : <ProfileImg src={silhouette}/>}Welcome, {user === null ? "" : user.name}</h2>
+    <button onClick={() => logOut()}>Log Out</button><br /><br />
     <form onSubmit={handleSubmit}>
       <input type="text" id="findUser"></input><button type="submit">Search User</button><br />
     </form><br />
