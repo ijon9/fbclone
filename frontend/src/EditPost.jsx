@@ -7,8 +7,6 @@ import ReactTimeAgo from 'react-time-ago';
 import silhouette from './silhouette.jpg'
 
 
-
-
 function EditPost({ profileImg, user, post, setPosts }) {
   const navigate = useNavigate();
   const [prevImgs, setPrevImgs] = useState([]);
@@ -151,6 +149,11 @@ function EditPost({ profileImg, user, post, setPosts }) {
         content: document.getElementById("content"+post.id).value,
       };
       const resp2 = await axios.post(backendURL+"/updatePost", payload);
+      if(resp2.data.message === "Invalid query") {
+        alert("Post deleted");
+        setPosts((prev) => prev.filter(p => p.id !== post.id));
+        return;
+      }
       setPosts((prev) => {
         const temp = [...prev];
         for(let i=0; i<temp.length; i++) {
