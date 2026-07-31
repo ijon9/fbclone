@@ -152,7 +152,7 @@ function ViewProfile() {
     }
     else if(status === "friends") {
       return <div>
-        <button onClick={() => respond(id, "remove", many)}>Remove friend</button>
+        Friends! <button onClick={() => respond(id, "remove", many)}>Remove friend</button>
       </div>
     }
     else if(status === "received") {

@@ -127,7 +127,7 @@ function ManageRequests() {
     }
     else if(status === "friends") {
       return <div>
-        <button onClick={() => respond(id, "remove")}>Remove friend</button>
+        Friends! <button onClick={() => respond(id, "remove")}>Remove friend</button>
       </div>
     }
     else if(status === "received") {

@@ -9,34 +9,15 @@ import { prisma } from "./lib/prisma.js";
 // npx prisma studio --config ./prisma.config.js
 
 // TODO
-// Reload each page
-// Check keys are unique for every page
-// Check inputting empty image
-// Check every button verifies user first
-// Remove all console.logs
-// Test synchronous interactions
-//    ex: Two users sending friend requests at same time
-//        Commenting or liking a deleted post
-// Make testLogin() return user
-// Get mutual friend count
+
+
+
 // Add buttons to head bar
-// Check imports are all used
-// Verify userse at every interaction
 
-// Mutual friends
-
-
-// ViewProfile friends and mutual friends
-// Send friend request from viewProfile page
 // guest login
-// Display friends on view profile page
-//  clicking on it goes to view profile, also send friend request
 // Make pressing enter work
-// Delete sent friend request
-// View profile verify user
-// Move profile img above buttons
-// Double delete post
-// Mange requests to manage friends
+
+
 
 
 
@@ -212,7 +193,6 @@ app.post("/createComment", async (req, res) => {
       where: { id: payload.postId }
     });
     if(!post) {
-      console.log("Deleted");
       return res.send({message: "Deleted post", comm: null})
     }
     const comm = await prisma.comment.create({

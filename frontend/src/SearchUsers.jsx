@@ -114,8 +114,11 @@ function SearchUsers() {
       </div>
     }
     else if(status === "friends") {
-      return <div>Friends!</div>
+      return <div>
+        Friends! <button onClick={() => respond(id, "deny")}>Remove friend</button>
+      </div>
     }
+    
     else if(status === "received") {
       return <div>
         <button onClick={() => respond(id, "accept")}>Accept</button>
