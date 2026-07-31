@@ -93,7 +93,7 @@ function LogIn() {
     </div><br />
     <div>OR:</div><br />
     <div>
-      <button>Guest Login</button>
+      <button onClick={() => guestLogin()}>Guest Login</button>
     </div>
     
     
