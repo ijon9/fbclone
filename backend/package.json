@@ -16,7 +16,7 @@
   },
   "scripts": {
     "postinstall": "prisma generate",
-    "start": "node app.js"
+    "start": "prisma generate && node app.js"
   },
   "devDependencies": {
     "nodemon": "^3.1.14",
