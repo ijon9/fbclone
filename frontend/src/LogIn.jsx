@@ -26,7 +26,8 @@ function LogIn() {
     grab();
   }, []);
 
-  async function signUp() {
+  async function signUp(e) {
+    e.preventDefault();
     const payload = {
       email: document.getElementById('email2').value,
       name: document.getElementById('name2').value,
@@ -41,7 +42,8 @@ function LogIn() {
     else alert('Account created!');
   }
 
-  async function logIn() {
+  async function logIn(e) {
+    e.preventDefault();
     const payload = {
       email: document.getElementById('email').value,
       password: document.getElementById('password').value,
@@ -73,23 +75,28 @@ function LogIn() {
     <>
     <h1> FBClone </h1>
     <div>
-      <label for="email">Email:</label>
-      <input id="email" name="email" placeholder="email" type="text" /><br/>
-      <label for="password">Password:</label>
-      <input id="password" name="password" type="password" /><br/>
-      <button type="submit" onClick={() => logIn()}>Log In</button>
+      <form onSubmit={logIn}>
+        <label for="email">Email:</label>
+        <input id="email" name="email" placeholder="email" type="text" /><br/>
+        <label for="password">Password:</label>
+        <input id="password" name="password" type="password" /><br/>
+        <button type="submit">Log In</button>
+      </form>
+      
     </div>
     <br/>
     <div>OR:</div>
     <br/>
     <div>
-      <label for="email2">Email:</label>
-      <input id="email2" name="email2" placeholder="email" type="text" /><br/>
-      <label for="name2">Name:</label>
-      <input id="name2" name="name2" placeholder="name" type="text" /><br/>
-      <label for="password2">Password:</label>
-      <input id="password2" name="password2" type="password" /><br/>  
-      <button type="submit" onClick={() => signUp()}>Sign Up</button>
+      <form onSubmit={signUp}>
+        <label for="email2">Email:</label>
+        <input id="email2" name="email2" placeholder="email" type="text" /><br/>
+        <label for="name2">Name:</label>
+        <input id="name2" name="name2" placeholder="name" type="text" /><br/>
+        <label for="password2">Password:</label>
+        <input id="password2" name="password2" type="password" /><br/>  
+        <button type="submit">Sign Up</button>
+      </form>
     </div><br />
     <div>OR:</div><br />
     <div>
