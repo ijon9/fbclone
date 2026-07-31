@@ -57,6 +57,17 @@ function LogIn() {
     localStorage.setItem('token', obj.token);
     navigate("/home");
   }
+
+  async function guestLogin() {
+    const payload = {
+      email: "guest@gmail.com",
+      password: "test"
+    }
+    const response = await axios.post(backendURL+'/logIn', payload);
+    const obj = response.data;
+    localStorage.setItem('token', obj.token);
+    navigate("/home");
+  }
   
   return (
     <>
@@ -79,6 +90,10 @@ function LogIn() {
       <label for="password2">Password:</label>
       <input id="password2" name="password2" type="password" /><br/>  
       <button type="submit" onClick={() => signUp()}>Sign Up</button>
+    </div><br />
+    <div>OR:</div><br />
+    <div>
+      <button>Guest Login</button>
     </div>
     
     
